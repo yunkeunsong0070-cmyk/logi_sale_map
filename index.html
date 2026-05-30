@@ -932,6 +932,62 @@
     font-size:15px;font-weight:700;letter-spacing:-0.01em;
   }
   .edit-modal-body{padding:6px 24px 18px;max-height:60vh;overflow-y:auto;}
+  /* Company edit form */
+  .co-form{display:flex;flex-direction:column;gap:14px;padding-top:14px;}
+  .co-field{display:flex;flex-direction:column;gap:5px;}
+  .co-field > label{
+    font-size:10px;font-weight:700;letter-spacing:0.08em;
+    color:var(--ink-3);text-transform:uppercase;
+  }
+  .co-field input[type=text],
+  .co-field textarea,
+  .co-field select{
+    font-family:inherit;font-size:13px;color:var(--ink-0);
+    border:1px solid var(--line);background:var(--bg);
+    padding:8px 10px;border-radius:3px;outline:none;
+    transition:border-color 0.15s;line-height:1.5;resize:vertical;
+  }
+  .co-field input:focus,.co-field textarea:focus,.co-field select:focus{border-color:var(--ink-0);}
+  .co-help{font-size:10.5px;color:var(--ink-4);margin-top:2px;}
+  .tier-switch{display:flex;flex-direction:column;gap:6px;}
+  .tier-switch label{
+    display:flex;align-items:center;gap:8px;
+    padding:9px 12px;border:1px solid var(--line);border-radius:3px;
+    cursor:pointer;font-size:12.5px;color:var(--ink-1);
+    transition:all 0.15s;
+  }
+  .tier-switch label:hover{border-color:var(--ink-1);background:var(--bg-soft);}
+  .tier-switch input[type=radio]{accent-color:var(--ink-0);}
+  .tier-switch input[type=radio]:checked + .tier{outline:2px solid var(--ink-0);outline-offset:2px;}
+  .tier-switch label:has(input:checked){border-color:var(--ink-0);background:var(--bg-mute);}
+  .co-actions{
+    display:flex;align-items:center;gap:8px;
+    padding-top:18px;margin-top:18px;border-top:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  .co-danger{color:#b91c1c;border-color:#fca5a5;}
+  .co-danger:hover{background:#b91c1c;color:#fff;border-color:#b91c1c;}
+  html[data-theme="dark"] .co-danger{color:#fca5a5;border-color:#7f1d1d;}
+  html[data-theme="dark"] .co-danger:hover{background:#dc2626;color:#fff;border-color:#dc2626;}
+  .btn-primary{background:var(--ink-0);color:var(--bg);border-color:var(--ink-0);}
+  .btn-primary:hover{opacity:0.85;}
+  /* Company card actions (hover) */
+  .company{position:relative;}
+  .co-actions-mini{
+    display:flex;align-items:center;gap:4px;
+    opacity:0;transition:opacity 0.15s;
+  }
+  .company:hover .co-actions-mini{opacity:1;}
+  .co-act-btn{
+    background:transparent;border:none;cursor:pointer;
+    width:22px;height:22px;border-radius:3px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-3);font-size:11px;font-family:inherit;
+    transition:all 0.15s;line-height:1;
+  }
+  .co-act-btn:hover{background:var(--ink-0);color:var(--bg);}
+  .co-act-btn.danger:hover{background:#b91c1c;color:#fff;}
+  @media (hover:none){.co-actions-mini{opacity:1;}}
   .edit-row{
     display:grid;grid-template-columns:1fr auto;gap:12px;
     padding:10px 0;border-bottom:1px solid var(--line);
@@ -1130,6 +1186,50 @@
 </div>
 
 <!-- Edit Modal -->
+<!-- Company Edit Modal -->
+<div class="edit-modal-bg" id="co-edit-modal" onclick="if(event.target===this)closeCoEdit()">
+  <div class="edit-modal">
+    <div class="edit-modal-head">
+      <h3 id="co-edit-title">회사 정보 편집</h3>
+      <button class="m-close" onclick="closeCoEdit()">✕</button>
+    </div>
+    <div class="edit-modal-body">
+      <div class="co-form">
+        <div class="co-field">
+          <label>회사명</label>
+          <input type="text" id="co-name" placeholder="예: HMM" />
+        </div>
+        <div class="co-field">
+          <label>티어 (Tier)</label>
+          <div class="tier-switch">
+            <label><input type="radio" name="co-tier" value="1"> <span class="tier tier-1">T1</span> 1티어 (대형 고객사)</label>
+            <label><input type="radio" name="co-tier" value="2"> <span class="tier tier-2">T2</span> 2티어 (리서치·신규 보강)</label>
+          </div>
+        </div>
+        <div class="co-field">
+          <label>소속 섹터</label>
+          <select id="co-sector"></select>
+        </div>
+        <div class="co-field">
+          <label>설명 / 태그라인</label>
+          <textarea id="co-desc" rows="2" placeholder="예: 국적 1위 컨테이너 선사 · 글로벌 8위급"></textarea>
+        </div>
+        <div class="co-field">
+          <label>Excel 데이터 키 (매칭 키워드, 선택)</label>
+          <input type="text" id="co-excel" placeholder="예: CJ대한통운 / 한진" />
+          <span class="co-help">첨부 엑셀의 상호명 매칭용 키워드. 비우면 엑셀 연동 없음.</span>
+        </div>
+      </div>
+      <div class="co-actions">
+        <button class="gt-btn co-danger" id="co-delete">✕ 이 회사 삭제</button>
+        <div style="flex:1"></div>
+        <button class="gt-btn" onclick="closeCoEdit()">취소</button>
+        <button class="gt-btn btn-primary" id="co-save">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="edit-modal-bg" id="edit-modal" onclick="if(event.target===this)closeEditModal()">
   <div class="edit-modal">
     <div class="edit-modal-head">
@@ -1165,6 +1265,7 @@
     <div class="legend-item"><span class="tier tier-1">T1</span> 1티어 (기재 대형 고객사)</div>
     <div class="legend-item"><span class="tier tier-2">T2</span> 2티어 (AI 리서치 보강)</div>
     <div class="legend-item"><span class="c-data-flag">DATA</span> 물류센터 등록 데이터 보유</div>
+    <div class="legend-item" style="color:var(--ink-4);">💡 티어 배지 클릭 · 우클릭으로 T1↔T2 전환 · 카드 호버 시 ✎ 편집 · ✕ 삭제</div>
   </div>
   <div class="search">
     <span class="search-ico">⌕</span>
@@ -1775,14 +1876,45 @@ function renderGrid(filter){
     matched.forEach(c=>{
       const ci = sec.companies.indexOf(c);
       const tierBadge = c.tier===1
-        ? `<span class="tier tier-1">T1</span>`
-        : `<span class="tier tier-2">T2</span>`;
+        ? `<span class="tier tier-1" title="클릭으로 티어 변경">T1</span>`
+        : `<span class="tier tier-2" title="클릭으로 티어 변경">T2</span>`;
       const hasData = c.excelKey && EXCEL.centers[c.excelKey];
       const dataFlag = hasData ? `<span class="c-data-flag">DATA·${EXCEL.centers[c.excelKey].length}</span>` : `<span></span>`;
       const btn = document.createElement("button");
       btn.className="company";
-      btn.innerHTML = `${tierBadge}<span class="c-name">${c.name}</span>${dataFlag}<span class="c-arrow">↗</span>`;
-      btn.onclick = ()=>openModal(si, ci);
+      btn.innerHTML = `${tierBadge}<span class="c-name">${c.name}</span>${dataFlag}
+        <span class="co-actions-mini">
+          <span class="co-act-btn co-tier-toggle" data-si="${si}" data-ci="${ci}" title="티어 전환 (T1↔T2)">⇄</span>
+          <span class="co-act-btn co-edit" data-si="${si}" data-ci="${ci}" title="편집">✎</span>
+          <span class="co-act-btn danger co-delete" data-si="${si}" data-ci="${ci}" title="삭제">✕</span>
+        </span>
+        <span class="c-arrow">↗</span>`;
+      btn.addEventListener("click", (e)=>{
+        // delegate inline actions
+        const tg = e.target.closest(".co-act-btn");
+        if(tg){
+          e.stopPropagation();
+          const sii = parseInt(tg.dataset.si,10);
+          const cii = parseInt(tg.dataset.ci,10);
+          if(tg.classList.contains("co-tier-toggle")) toggleCompanyTier(sii,cii);
+          else if(tg.classList.contains("co-edit")) openCoEdit(sii,cii);
+          else if(tg.classList.contains("co-delete")) deleteCompany(sii,cii);
+          return;
+        }
+        // Tier badge quick toggle
+        const tb = e.target.closest(".tier");
+        if(tb){
+          e.stopPropagation();
+          toggleCompanyTier(si, ci);
+          return;
+        }
+        openModal(si, ci);
+      });
+      // Right-click for quick tier toggle
+      btn.addEventListener("contextmenu", e=>{
+        e.preventDefault();
+        toggleCompanyTier(si, ci);
+      });
       wrap.appendChild(btn);
     });
     card.querySelector(".add-slot").onclick = ()=>addSlot(si);
@@ -2049,7 +2181,8 @@ function closeModal(){
 }
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){
-    if(document.getElementById("drawer").classList.contains("active")) closeDrawer();
+    if(document.getElementById("co-edit-modal").classList.contains("active")) closeCoEdit();
+    else if(document.getElementById("drawer").classList.contains("active")) closeDrawer();
     else closeModal();
   }
 });
@@ -2066,16 +2199,188 @@ function onSFClick(e, el){
   }
 }
 
+/* ===== Company-level edits (tier/name/desc/sector/excelKey) ===== */
+const CUSTOM_CO_KEY = "deepfine_custom_companies_v1";
+function saveCustomCompanies(){
+  // Snapshot full DATA structure (preserves user edits & additions)
+  const snap = DATA.map(sec=>({
+    title: sec.title,
+    companies: sec.companies.map(c=>({
+      name:c.name, tier:c.tier, desc:c.desc, excelKey:c.excelKey,
+      depts: (c.depts||[]).map(d=>({name:d.name, desc:d.desc, sf:d.sf}))
+    }))
+  }));
+  try{ localStorage.setItem(CUSTOM_CO_KEY, JSON.stringify(snap)); }catch(e){}
+}
+function loadCustomCompanies(){
+  try{
+    const raw = localStorage.getItem(CUSTOM_CO_KEY);
+    if(!raw) return;
+    const snap = JSON.parse(raw);
+    if(!Array.isArray(snap)) return;
+    // Apply: match sector by title; replace companies wholesale
+    snap.forEach(sec=>{
+      const idx = DATA.findIndex(d=>d.title===sec.title);
+      if(idx>=0 && Array.isArray(sec.companies)){
+        DATA[idx].companies = sec.companies;
+      }
+    });
+  }catch(e){ console.warn("loadCustomCompanies failed", e); }
+}
+// Apply persisted edits at startup (before any rendering)
+loadCustomCompanies();
+
+function toggleCompanyTier(si, ci){
+  const c = DATA[si].companies[ci];
+  if(!c || c.tier===0) return;
+  c.tier = c.tier===1 ? 2 : 1;
+  saveCustomCompanies();
+  renderGrid(document.getElementById("search").value.trim().toLowerCase());
+  showToast(`✓ ${c.name} → T${c.tier}`);
+}
+
+function openCoEdit(si, ci){
+  const c = DATA[si].companies[ci];
+  if(!c) return;
+  window._coEditCtx = {si, ci};
+  document.getElementById("co-edit-title").textContent = `회사 정보 편집 — ${c.name}`;
+  document.getElementById("co-name").value = c.name || "";
+  document.getElementById("co-desc").value = c.desc || "";
+  document.getElementById("co-excel").value = c.excelKey || "";
+  // populate sector select
+  const sel = document.getElementById("co-sector");
+  sel.innerHTML = DATA.map((s,i)=>`<option value="${i}" ${i===si?"selected":""}>${s.title}</option>`).join("");
+  // tier radio
+  document.querySelectorAll('input[name="co-tier"]').forEach(r=>{
+    r.checked = (parseInt(r.value,10) === (c.tier||2));
+  });
+  document.getElementById("co-edit-modal").classList.add("active");
+}
+function closeCoEdit(){
+  document.getElementById("co-edit-modal").classList.remove("active");
+  window._coEditCtx = null;
+}
+function saveCoEdit(){
+  const ctx = window._coEditCtx;
+  if(!ctx) return;
+  const name = document.getElementById("co-name").value.trim();
+  if(!name){ alert("회사명을 입력해 주세요."); return; }
+  const tierVal = parseInt((document.querySelector('input[name="co-tier"]:checked')||{}).value,10) || 2;
+  const newSi = parseInt(document.getElementById("co-sector").value,10);
+  const desc = document.getElementById("co-desc").value.trim();
+  const excelKey = document.getElementById("co-excel").value.trim();
+  
+  const c = DATA[ctx.si].companies[ctx.ci];
+  const oldPid = ctx.si + "-" + ctx.ci;
+  
+  // If sector changed, we must move the company and re-key everything
+  if(newSi !== ctx.si){
+    // Remove from old sector
+    DATA[ctx.si].companies.splice(ctx.ci, 1);
+    // Push to new sector
+    DATA[newSi].companies.push(c);
+    const newCi = DATA[newSi].companies.length - 1;
+    const newPid = newSi + "-" + newCi;
+    // Re-key NOTES/LOGS/PIPELINE for this company
+    rekeyCompany(oldPid, newPid);
+    // Re-key all companies in OLD sector that came after ctx.ci
+    reindexAfter(ctx.si, ctx.ci);
+    ctx.si = newSi; ctx.ci = newCi;
+  }
+  // Apply field changes
+  c.name = name;
+  c.tier = tierVal;
+  c.desc = desc;
+  c.excelKey = excelKey || undefined;
+  saveCustomCompanies();
+  closeCoEdit();
+  renderGrid(document.getElementById("search").value.trim().toLowerCase());
+  renderFunnel();
+  renderKanban();
+  showToast("✓ 회사 정보 저장");
+}
+
+function rekeyCompany(oldPid, newPid){
+  // Pipeline
+  if(PIPELINE[oldPid]!==undefined){
+    PIPELINE[newPid] = PIPELINE[oldPid];
+    delete PIPELINE[oldPid];
+  }
+  // Notes (per-dept)
+  Object.keys(NOTES).forEach(k=>{
+    if(k.startsWith(oldPid+"::")){
+      const di = k.split("::")[1];
+      NOTES[newPid+"::"+di] = NOTES[k];
+      delete NOTES[k];
+    }
+  });
+  // Logs
+  Object.keys(LOGS).forEach(k=>{
+    if(k.startsWith(oldPid+"::")){
+      const di = k.split("::")[1];
+      LOGS[newPid+"::"+di] = LOGS[k];
+      delete LOGS[k];
+    }
+  });
+  savePipeline(); saveNotes(); saveLogs();
+}
+function reindexAfter(si, fromCi){
+  // When a company is removed from sector si at index fromCi, all later companies shift left by 1.
+  const total = DATA[si].companies.length + 1; // before move; safer to compute current+1
+  // Iterate from fromCi up to the highest index we might find in storage. Cap reasonably.
+  const cap = 200;
+  for(let oldCi=fromCi+1; oldCi<cap; oldCi++){
+    const oldPid = si+"-"+oldCi;
+    const newPid = si+"-"+(oldCi-1);
+    rekeyCompany(oldPid, newPid);
+  }
+}
+
+function deleteCompany(si, ci){
+  const c = DATA[si].companies[ci];
+  if(!c) return;
+  if(!confirm(`"${c.name}" 회사를 완전히 삭제합니까?\n\n· 이 회사의 영업 노트·활동 로그·파이프라인 도 함께 삭제됩니다.\n· 취소하려면 백업 JSON을 복원해야 합니다.`)) return;
+  const oldPid = si+"-"+ci;
+  // Wipe pipeline/notes/logs for this company
+  delete PIPELINE[oldPid];
+  Object.keys(NOTES).forEach(k=>{ if(k.startsWith(oldPid+"::")) delete NOTES[k]; });
+  Object.keys(LOGS).forEach(k=>{ if(k.startsWith(oldPid+"::")) delete LOGS[k]; });
+  // Remove company
+  DATA[si].companies.splice(ci, 1);
+  // Reindex later companies in this sector
+  reindexAfter(si, ci);
+  savePipeline(); saveNotes(); saveLogs();
+  saveCustomCompanies();
+  renderGrid(document.getElementById("search").value.trim().toLowerCase());
+  renderFunnel();
+  renderKanban();
+  closeCoEdit();
+  showToast("✓ 삭제 완료");
+}
+
 function addSlot(si){
-  const name = prompt("추가할 2티어 업체명:");
+  const name = prompt("추가할 업체명:");
   if(!name) return;
-  const desc = prompt("간단 설명:")||"";
+  const tierIn = prompt("티어 선택 (1=1티어 / 2=2티어)", "2");
+  const tier = (tierIn==="1") ? 1 : 2;
+  const desc = prompt("간단 설명 (선택):")||"";
   DATA[si].companies.push({
-    name, tier:2, desc,
+    name, tier, desc,
     depts:[{name:"운영팀", desc:"기본 컨택 부서", sf:"https://deepfine.lightning.force.com/lightning/r/Lead/NEW/view"}]
   });
+  saveCustomCompanies();
   renderGrid(document.getElementById("search").value.trim().toLowerCase());
+  renderFunnel();
+  renderKanban();
+  showToast(`✓ ${name} 추가 (T${tier})`);
 }
+
+/* Wire company edit modal buttons */
+document.getElementById("co-save").addEventListener("click", saveCoEdit);
+document.getElementById("co-delete").addEventListener("click", ()=>{
+  const ctx = window._coEditCtx;
+  if(ctx) deleteCompany(ctx.si, ctx.ci);
+});
 
 /* Search */
 document.getElementById("search").addEventListener("input", e=>{
