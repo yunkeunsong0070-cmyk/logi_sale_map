@@ -1,0 +1,2701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEEP.FINE — Reverse Logistics Sales Targeting</title>
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --bg-soft:#FAFAFA;
+    --bg-mute:#F4F4F5;
+    --line:#E4E4E7;
+    --line-strong:#D4D4D8;
+    --ink-0:#09090B;
+    --ink-1:#27272A;
+    --ink-2:#52525B;
+    --ink-3:#71717A;
+    --ink-4:#A1A1AA;
+    --accent:#000000;
+    --shadow:rgba(0,0,0,0.06);
+    --shadow-strong:rgba(0,0,0,0.25);
+  }
+  html[data-theme="dark"]{
+    --bg:#0A0A0B;
+    --bg-soft:#111113;
+    --bg-mute:#1A1A1D;
+    --line:#27272A;
+    --line-strong:#3F3F46;
+    --ink-0:#FAFAFA;
+    --ink-1:#E4E4E7;
+    --ink-2:#A1A1AA;
+    --ink-3:#71717A;
+    --ink-4:#52525B;
+    --accent:#FFFFFF;
+    --shadow:rgba(0,0,0,0.4);
+    --shadow-strong:rgba(0,0,0,0.7);
+  }
+  html[data-theme="dark"] .tier-1{background:#FAFAFA;color:#0A0A0B;}
+  html[data-theme="dark"] .tier-2{color:#FAFAFA;border-color:#A1A1AA;}
+  html[data-theme="dark"] .sf-tag{background:#FAFAFA;color:#0A0A0B;}
+  html[data-theme="dark"] .sf-tag-opp{background:#60A5FA;color:#0A0A0B;}
+  html[data-theme="dark"] .sf-tag-acc{background:#71717A;color:#FAFAFA;}
+  html[data-theme="dark"] .sf-tag-etc{background:transparent;color:#FAFAFA;border-color:#FAFAFA;}
+  html[data-theme="dark"] .mini-tier.t1{background:#FAFAFA;color:#0A0A0B;}
+  html[data-theme="dark"] .mini-tier.t2{color:#FAFAFA;border-color:#FAFAFA;}
+  html[data-theme="dark"] .kcol[data-stage="converted"]{background:#1A1A1D;border-color:#3F3F46;}
+  html[data-theme="dark"] .toast{background:#FAFAFA;color:#0A0A0B;}
+  html[data-theme="dark"] .m-note-status.saved{color:#86efac;}
+  html[data-theme="dark"] .dept.has-notes::after{color:#86efac;}
+  html[data-theme="dark"] .park-tag.op{background:#FAFAFA;color:#0A0A0B;}
+  html[data-theme="dark"] input[type=date]{color-scheme:dark;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink-0);
+    font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Inter","Segoe UI","Noto Sans KR",sans-serif;
+    font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;
+    font-feature-settings:"ss01","cv11";
+  }
+  /* === HEADER === */
+  .header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-inner{
+    max-width:1380px;margin:0 auto;
+    padding:14px 32px;
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+  }
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:-0.01em;}
+  .logo-mark{
+    width:24px;height:24px;
+    background:var(--ink-0);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:11px;letter-spacing:0.05em;
+    border-radius:3px;
+  }
+  .logo-text{color:var(--ink-0);}
+  .logo-text span{color:var(--ink-3);font-weight:500;}
+  .header-meta{font-size:12px;color:var(--ink-3);letter-spacing:0.01em;}
+  /* === GLOBAL TOOLBAR (top bar with theme/export buttons) === */
+  .global-toolbar{
+    position:sticky;top:0;z-index:80;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--line);
+    transition:background 0.2s, border-color 0.2s;
+  }
+  html[data-theme="dark"] .global-toolbar{background:rgba(10,10,11,0.92);}
+  .global-toolbar > .gt-left,
+  .global-toolbar > .gt-right{}
+  .global-toolbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 32px;
+    max-width:1380px;margin:0 auto;
+    gap:12px;
+  }
+  .gt-brand{display:flex;align-items:center;gap:8px;}
+  .gt-mark{
+    width:24px;height:24px;border-radius:4px;
+    background:var(--ink-0);color:var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:10px;letter-spacing:0.05em;
+  }
+  .gt-name{font-weight:700;font-size:13px;letter-spacing:-0.01em;color:var(--ink-0);}
+  .gt-tag{font-size:10px;color:var(--ink-3);letter-spacing:0.06em;text-transform:uppercase;margin-left:4px;}
+  .gt-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .gt-btn{
+    background:var(--bg);border:1px solid var(--line-strong);
+    color:var(--ink-1);font-size:11px;font-weight:600;
+    padding:6px 11px;border-radius:3px;cursor:pointer;
+    font-family:inherit;letter-spacing:0.01em;
+    transition:all 0.15s;line-height:1.4;
+    white-space:nowrap;
+  }
+  .gt-btn:hover{background:var(--ink-0);color:var(--bg);border-color:var(--ink-0);}
+  .gt-theme{font-size:14px;padding:5px 10px;line-height:1;}
+  /* === HERO === */
+  .hero{
+    max-width:1380px;margin:0 auto;
+    padding:56px 32px 32px;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-sub{
+    display:block;font-size:24px;font-weight:500;color:var(--ink-2);
+    letter-spacing:-0.015em;margin-top:6px;
+  }
+  .eyebrow{
+    display:inline-block;
+    font-size:11px;font-weight:600;letter-spacing:0.14em;
+    color:var(--ink-3);text-transform:uppercase;
+    padding-bottom:8px;border-bottom:1px solid var(--ink-0);
+    margin-bottom:18px;
+  }
+  .eyebrow.small{padding-bottom:6px;margin-bottom:10px;}
+  /* === PIPELINE DASHBOARD === */
+  .pipeline{
+    max-width:1380px;margin:0 auto;
+    padding:36px 32px 28px;
+    border-bottom:1px solid var(--line);
+  }
+  .pipeline-head{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:24px;
+    margin-bottom:24px;flex-wrap:wrap;
+  }
+  .pipeline-head h2{
+    font-size:24px;font-weight:700;letter-spacing:-0.02em;color:var(--ink-0);
+  }
+  .pipeline-sub{
+    font-size:13px;color:var(--ink-2);margin-top:6px;max-width:700px;
+  }
+  .pipeline-actions{display:flex;gap:8px;}
+  .btn-ghost{
+    background:var(--bg);border:1px solid var(--line-strong);
+    color:var(--ink-1);font-size:12px;font-weight:600;
+    padding:7px 14px;border-radius:3px;cursor:pointer;
+    font-family:inherit;letter-spacing:0.02em;
+    transition:all 0.15s;
+  }
+  .btn-ghost:hover{background:var(--ink-0);color:#fff;border-color:var(--ink-0);}
+  .btn-ghost.btn-primary{background:var(--ink-0);color:#fff;border-color:var(--ink-0);}
+  .btn-ghost.btn-primary:hover{background:#000;}
+  /* Funnel final */
+  .fn-final{background:var(--bg-mute);}
+  .fn-stage-label{color:var(--ink-0);}
+  .fn-handoff{
+    font-size:9px;font-weight:700;letter-spacing:0.08em;
+    background:var(--ink-0);color:#fff;
+    padding:1px 5px;border-radius:2px;margin-left:auto;
+    text-transform:none;white-space:nowrap;
+  }
+  /* Kanban final */
+  .kcol-final{background:var(--bg-mute);border-color:var(--ink-1);}
+  .kcol-final .kcol-head{background:var(--ink-0);}
+  .kcol-final .kcol-title{color:#fff;}
+  .kcol-final .kcol-cnt{background:rgba(255,255,255,0.15);color:#fff;}
+  .sf-mark{
+    font-size:8px;font-weight:700;letter-spacing:0.08em;
+    background:#fff;color:var(--ink-0);
+    padding:1px 4px;border-radius:2px;margin-left:4px;
+  }
+  /* Pipeline note */
+  .pipeline-note{
+    margin-top:18px;padding:12px 16px;
+    border:1px solid var(--line);background:var(--bg-soft);
+    border-radius:3px;
+    font-size:12px;color:var(--ink-2);line-height:1.55;
+    display:flex;align-items:flex-start;gap:10px;
+  }
+  .pipeline-note b{color:var(--ink-0);font-weight:600;}
+  .pn-mark{
+    font-size:10px;font-weight:700;letter-spacing:0.08em;
+    background:var(--ink-0);color:#fff;
+    padding:2px 7px;border-radius:2px;flex-shrink:0;
+  }
+  /* Stage Editor Modal */
+  .modal-editor{max-width:720px;}
+  .se-toolbar{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-bottom:14px;flex-wrap:wrap;
+  }
+  .se-hint{font-size:11px;color:var(--ink-3);max-width:480px;line-height:1.5;}
+  .se-list{
+    display:flex;flex-direction:column;gap:6px;
+    border:1px solid var(--line);border-radius:3px;padding:6px;
+    background:var(--bg-soft);
+    margin-bottom:18px;
+    min-height:120px;max-height:50vh;overflow-y:auto;
+  }
+  .se-row{
+    display:grid;
+    grid-template-columns:24px 30px 170px 1fr auto;
+    gap:8px;align-items:center;
+    padding:8px 10px;
+    background:var(--bg);
+    border:1px solid var(--line);border-radius:3px;
+    transition:all 0.15s;
+  }
+  .se-row[data-final="1"]{
+    background:var(--bg-mute);
+    border-color:var(--ink-1);
+  }
+  .se-row.dragging{opacity:0.4;}
+  .se-row:hover{border-color:var(--line-strong);}
+  .se-handle{
+    cursor:grab;color:var(--ink-4);font-size:14px;user-select:none;
+    text-align:center;
+  }
+  .se-handle:active{cursor:grabbing;}
+  .se-num{
+    font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-4);
+    text-align:center;
+  }
+  .se-label,.se-desc{
+    border:1px solid var(--line);border-radius:2px;
+    padding:6px 8px;font-size:12px;font-family:inherit;
+    color:var(--ink-0);background:var(--bg);outline:none;
+    transition:border-color 0.15s;
+    width:100%;
+  }
+  .se-label{font-weight:600;}
+  .se-label:focus,.se-desc:focus{border-color:var(--ink-0);}
+  .se-del{
+    background:transparent;border:1px solid var(--line-strong);
+    width:24px;height:24px;border-radius:2px;cursor:pointer;
+    color:var(--ink-3);font-size:11px;font-family:inherit;
+    display:flex;align-items:center;justify-content:center;
+    transition:all 0.15s;
+  }
+  .se-del:hover{background:#000;color:#fff;border-color:#000;}
+  .se-final-tag{
+    font-size:9px;font-weight:700;letter-spacing:0.06em;
+    background:var(--ink-0);color:#fff;
+    padding:4px 8px;border-radius:2px;
+    white-space:nowrap;
+  }
+  .se-actions{
+    display:flex;justify-content:flex-end;gap:8px;
+    padding-top:12px;border-top:1px solid var(--line);
+  }
+  @media (max-width:640px){
+    .se-row{grid-template-columns:20px 28px 1fr auto;}
+    .se-row .se-desc{grid-column:3 / span 2;}
+  }
+  /* Funnel */
+  .funnel{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border:1px solid var(--line);
+    margin-bottom:24px;
+  }
+  @media (max-width:900px){.funnel{grid-template-columns:repeat(2,1fr);} .funnel .fn-cell{border-bottom:1px solid var(--line);}}
+  .fn-cell{
+    padding:18px 18px 16px;
+    border-right:1px solid var(--line);
+    background:var(--bg);
+    position:relative;overflow:hidden;
+  }
+  .fn-cell:last-child{border-right:none;}
+  .fn-cell .fn-bar{
+    position:absolute;left:0;bottom:0;height:3px;
+    background:var(--ink-0);transition:width 0.5s ease;
+  }
+  .fn-cell.editable{cursor:pointer;}
+  .fn-cell.editable:hover{background:var(--bg-soft);}
+  .fn-cell.editable::after{
+    content:"✎";position:absolute;top:10px;right:12px;
+    font-size:11px;color:var(--ink-4);opacity:0;transition:opacity 0.15s;
+  }
+  .fn-cell.editable:hover::after{opacity:1;}
+  .fn-edit-input{
+    font-family:"Inter",sans-serif;
+    font-size:24px;font-weight:700;letter-spacing:-0.03em;color:var(--ink-0);
+    border:1px solid var(--ink-0);background:#fff;
+    width:70px;padding:2px 6px;border-radius:2px;outline:none;
+    -moz-appearance:textfield;
+  }
+  .fn-edit-input::-webkit-outer-spin-button,
+  .fn-edit-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .fn-stage{
+    font-size:10px;font-weight:700;letter-spacing:0.1em;
+    color:var(--ink-3);text-transform:uppercase;margin-bottom:6px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .fn-stage .fn-num{
+    font-family:ui-monospace,monospace;color:var(--ink-4);
+  }
+  .fn-name{
+    font-size:14px;font-weight:600;color:var(--ink-0);margin-bottom:8px;
+  }
+  .fn-count{
+    display:flex;align-items:baseline;gap:6px;
+  }
+  .fn-count .v{
+    font-size:28px;font-weight:700;letter-spacing:-0.03em;color:var(--ink-0);
+    font-family:"Inter",sans-serif;
+  }
+  .fn-count .t{font-size:12px;color:var(--ink-3);}
+  .fn-pct{
+    margin-top:6px;font-size:11px;color:var(--ink-3);
+    font-family:ui-monospace,monospace;
+  }
+  /* Kanban */
+  .kanban{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+  }
+  @media (max-width:1100px){.kanban{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:700px){.kanban{grid-template-columns:1fr;}}
+  .kcol[data-stage="converted"]{
+    background:#0F0F11;border-color:#0F0F11;
+  }
+  .kcol[data-stage="converted"] .kcol-head{
+    background:var(--ink-0);border-bottom:1px solid #2A2A2E;
+  }
+  .kcol[data-stage="converted"] .kcol-title{color:#fff;}
+  .kcol[data-stage="converted"] .kcol-cnt{background:#27272A;color:#A1A1AA;}
+  .kcol[data-stage="converted"] .kcard{
+    background:#1A1A1D;border-color:#2A2A2E;color:#fff;
+  }
+  .kcol[data-stage="converted"] .kcard-name{color:#fff;}
+  .kcol[data-stage="converted"] .kcard-meta{color:#A1A1AA;}
+  .kcol[data-stage="converted"] .mini-tier.t1{background:#fff;color:#000;}
+  .kcol[data-stage="converted"] .mini-tier.t2{background:transparent;color:#fff;border-color:#fff;}
+  .kcol[data-stage="converted"] .kcol-empty{color:#52525B;}
+  .sf-badge{
+    display:inline-block;font-size:8px;font-weight:700;letter-spacing:0.05em;
+    background:#fff;color:#000;padding:1px 5px;border-radius:2px;
+    margin-left:6px;text-transform:uppercase;
+  }
+  .kcol{
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:4px;
+    display:flex;flex-direction:column;
+    min-height:140px;
+    max-height:420px;
+  }
+  .kcol-head{
+    padding:10px 12px;
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--bg);
+  }
+  .kcol-title{
+    font-size:11px;font-weight:700;letter-spacing:0.08em;
+    color:var(--ink-1);text-transform:uppercase;
+  }
+  .kcol-cnt{
+    font-size:10px;color:var(--ink-3);
+    font-family:ui-monospace,monospace;
+    background:var(--bg-mute);padding:2px 6px;border-radius:2px;
+  }
+  .kcol-body{
+    padding:8px;overflow-y:auto;
+    display:flex;flex-direction:column;gap:6px;flex:1;
+  }
+  .kcol-body::-webkit-scrollbar{width:6px;}
+  .kcol-body::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:3px;}
+  .kcard{
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:8px 10px;
+    cursor:grab;
+    transition:all 0.15s;
+    user-select:none;
+  }
+  .kcard:hover{border-color:var(--ink-0);box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+  .kcard.dragging{opacity:0.4;cursor:grabbing;}
+  .kcard-name{
+    font-size:12px;font-weight:600;color:var(--ink-0);
+    display:flex;align-items:center;gap:6px;
+  }
+  .kcard-meta{
+    font-size:10px;color:var(--ink-3);margin-top:3px;
+    font-family:ui-monospace,monospace;
+  }
+  .kcard .mini-tier{
+    font-size:8px;font-weight:700;
+    padding:1px 4px;border-radius:2px;
+    letter-spacing:0.04em;line-height:1.4;
+  }
+  .mini-tier.t1{background:var(--ink-0);color:#fff;}
+  .mini-tier.t2{background:transparent;color:var(--ink-1);border:1px solid var(--ink-1);}
+  .kcol.drop-target{background:var(--bg-mute);border-color:var(--ink-0);border-style:dashed;}
+  .kcol-empty{
+    text-align:center;color:var(--ink-4);font-size:11px;font-style:italic;
+    padding:20px 8px;
+  }
+  .hero h1{
+    font-size:36px;font-weight:700;letter-spacing:-0.025em;
+    line-height:1.15;color:var(--ink-0);
+    max-width:1000px;
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Pretendard",sans-serif;
+  }
+  .hero p{
+    margin-top:14px;color:var(--ink-2);font-size:15px;
+    max-width:780px;line-height:1.65;
+  }
+  /* Quick stats */
+  .stats{
+    display:flex;gap:48px;margin-top:28px;flex-wrap:wrap;
+  }
+  .stat{display:flex;flex-direction:column;gap:2px;}
+  .stat-val{font-size:22px;font-weight:700;letter-spacing:-0.02em;color:var(--ink-0);}
+  .stat-lbl{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;}
+  /* === TOOLBAR === */
+  .toolbar{
+    max-width:1380px;margin:0 auto;
+    padding:20px 32px 12px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .legend{display:flex;gap:18px;font-size:12px;color:var(--ink-3);align-items:center;flex-wrap:wrap;}
+  .legend-item{display:flex;align-items:center;gap:6px;}
+  .tier{
+    display:inline-flex;align-items:center;
+    font-size:10px;font-weight:700;letter-spacing:0.04em;
+    padding:2px 7px;border-radius:3px;line-height:1.6;
+  }
+  .tier-1{background:var(--ink-0);color:#fff;}
+  .tier-2{background:transparent;color:var(--ink-1);border:1px solid var(--ink-1);}
+  .tier-3{background:var(--bg-mute);color:var(--ink-3);border:1px solid var(--line);}
+  .search{
+    display:flex;align-items:center;gap:0;
+    border:1px solid var(--line-strong);border-radius:4px;
+    background:var(--bg);
+    transition:border-color 0.15s;
+  }
+  .search:focus-within{border-color:var(--ink-0);}
+  .search input{
+    border:none;outline:none;
+    padding:8px 12px;
+    font-size:13px;color:var(--ink-0);
+    background:transparent;
+    font-family:inherit;
+    min-width:220px;
+  }
+  .search input::placeholder{color:var(--ink-4);}
+  .search-ico{padding:0 10px 0 12px;color:var(--ink-3);font-size:11px;font-family:ui-monospace,monospace;}
+  /* === GRID === */
+  .grid{
+    max-width:1380px;margin:0 auto;
+    padding:8px 32px 80px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:0;
+    border-top:1px solid var(--line);
+    border-left:1px solid var(--line);
+  }
+  @media (max-width:1100px){.grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:720px){.grid{grid-template-columns:1fr;}.hero h1{font-size:26px;}.stats{gap:24px;}}
+  .sector{
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:22px 22px 18px;
+    background:var(--bg);
+    transition:background 0.15s;
+    display:flex;flex-direction:column;
+  }
+  .sector:hover{background:var(--bg-soft);}
+  .sector-head{
+    display:flex;align-items:baseline;gap:10px;
+    padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:12px;
+  }
+  .sector-num{
+    font-family:ui-monospace,SFMono-Regular,monospace;
+    font-size:11px;color:var(--ink-4);letter-spacing:0.05em;
+  }
+  .sector-title{
+    font-size:16px;font-weight:700;letter-spacing:-0.01em;color:var(--ink-0);
+    flex:1;
+  }
+  .sector-count{
+    font-size:11px;color:var(--ink-3);font-family:ui-monospace,monospace;
+  }
+  .sector-point{
+    font-size:12px;line-height:1.55;color:var(--ink-2);
+    padding:10px 12px;background:var(--bg-mute);
+    border-left:2px solid var(--ink-0);
+    margin-bottom:14px;
+    border-radius:0 2px 2px 0;
+  }
+  .sector-point b{color:var(--ink-0);font-weight:600;}
+  .companies{display:flex;flex-direction:column;}
+  .company{
+    border:none;
+    background:transparent;
+    padding:9px 0;
+    color:var(--ink-0);
+    text-align:left;cursor:pointer;
+    display:grid;
+    grid-template-columns:auto 1fr auto auto;
+    gap:10px;align-items:center;
+    font-family:inherit;font-size:13px;
+    border-bottom:1px solid var(--line);
+    transition:padding-left 0.15s;
+  }
+  .company:last-child{border-bottom:none;}
+  .company:hover{padding-left:6px;}
+  .company:hover .c-name{text-decoration:underline;text-underline-offset:3px;}
+  .c-name{font-weight:500;color:var(--ink-0);}
+  .c-meta{
+    font-size:10.5px;color:var(--ink-4);
+    font-family:ui-monospace,monospace;
+    text-align:right;
+  }
+  .c-arrow{color:var(--ink-3);font-size:11px;font-family:ui-monospace,monospace;}
+  .c-data-flag{
+    font-size:9px;color:var(--ink-3);
+    font-family:ui-monospace,monospace;
+    background:var(--bg-mute);
+    padding:1px 5px;border-radius:2px;
+    letter-spacing:0.04em;
+  }
+  .add-slot{
+    margin-top:6px;
+    border:1px dashed var(--line-strong);
+    background:transparent;
+    padding:8px 10px;
+    color:var(--ink-3);font-size:12px;font-style:italic;
+    cursor:pointer;font-family:inherit;
+    border-radius:3px;
+    transition:all 0.15s;
+  }
+  .add-slot:hover{border-color:var(--ink-0);color:var(--ink-0);background:var(--bg-mute);}
+  /* === MODAL === */
+  .modal-bg{
+    position:fixed;inset:0;
+    background:rgba(9,9,11,0.4);
+    z-index:200;display:none;
+    align-items:flex-start;justify-content:center;
+    padding:60px 24px 24px;
+    overflow-y:auto;
+  }
+  .modal-bg.active{display:flex;}
+  .modal{
+    background:var(--bg);
+    border:1px solid var(--ink-0);
+    max-width:820px;width:100%;
+    box-shadow:0 24px 48px -12px var(--shadow-strong);
+  }
+  /* Drawer (3rd depth) base styles */
+  .drawer-bg{
+    position:fixed;inset:0;
+    background:rgba(9,9,11,0.5);
+    z-index:300;display:none;
+    animation:fadeIn 0.18s ease;
+  }
+  .drawer-bg.active{display:block;}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes drawerIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
+  @keyframes drawerInMobile{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  .drawer{
+    position:absolute;top:0;right:0;bottom:0;
+    width:min(580px, 100%);
+    background:var(--bg);
+    border-left:1px solid var(--ink-0);
+    display:flex;flex-direction:column;
+    box-shadow:-12px 0 32px -8px var(--shadow-strong);
+    animation:drawerIn 0.25s ease;
+  }
+  .drawer-head{
+    padding:18px 22px 16px;
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+    background:var(--bg);flex-shrink:0;
+  }
+  .drawer-body{
+    padding:18px 22px 28px;
+    overflow-y:auto;flex:1;
+    -webkit-overflow-scrolling:touch;
+  }
+  .drawer .m-section{margin-bottom:22px;}
+  .drawer .m-section:last-child{margin-bottom:0;}
+  /* Activity Log */
+  .log-form{display:flex;gap:6px;margin-bottom:10px;}
+  .log-form input{
+    flex:1;border:1px solid var(--line);background:var(--bg);
+    padding:7px 10px;border-radius:3px;font-family:inherit;font-size:12.5px;
+    color:var(--ink-0);outline:none;transition:border-color 0.15s;
+  }
+  .log-form input:focus{border-color:var(--ink-0);}
+  .log-list{list-style:none;display:flex;flex-direction:column;gap:6px;padding:0;margin:0;}
+  .log-item{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:9px 10px;
+    background:var(--bg-soft);
+    border-left:2px solid var(--line-strong);
+    font-size:12px;color:var(--ink-1);line-height:1.5;
+    position:relative;
+  }
+  .log-item.auto{border-left-color:var(--ink-3);}
+  .log-item.auto .log-text{color:var(--ink-2);font-style:italic;}
+  .log-time{
+    font-size:10px;color:var(--ink-3);
+    font-family:ui-monospace,monospace;
+    flex-shrink:0;letter-spacing:0.02em;min-width:88px;
+  }
+  .log-text{flex:1;word-break:break-word;}
+  .log-del{
+    background:transparent;border:none;cursor:pointer;
+    color:var(--ink-4);font-size:11px;font-family:inherit;
+    padding:0 4px;line-height:1;
+    opacity:0;transition:opacity 0.15s;
+  }
+  .log-item:hover .log-del{opacity:1;}
+  .log-del:hover{color:var(--ink-0);}
+  .log-empty{
+    font-size:11px;color:var(--ink-4);font-style:italic;
+    padding:8px;text-align:center;
+  }
+  .modal-head{
+    padding:22px 28px 18px;
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  }
+  .m-eyebrow{
+    font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600;
+    margin-bottom:6px;
+  }
+  .m-name{font-size:22px;font-weight:700;letter-spacing:-0.02em;color:var(--ink-0);}
+  .m-desc{font-size:13px;color:var(--ink-2);margin-top:4px;}
+  .m-close{
+    background:var(--bg);border:1px solid var(--line-strong);
+    width:30px;height:30px;cursor:pointer;
+    color:var(--ink-1);font-family:inherit;font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:3px;flex-shrink:0;
+    transition:all 0.15s;
+  }
+  .m-close:hover{border-color:var(--ink-0);background:var(--ink-0);color:#fff;}
+  .m-body{padding:20px 28px 26px;}
+  /* Sales Notes form */
+  .notes-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+  }
+  @media (max-width:640px){.notes-grid{grid-template-columns:1fr;}}
+  .note-field{display:flex;flex-direction:column;gap:4px;}
+  .note-field-wide{grid-column:1/-1;}
+  .note-field label{
+    font-size:10px;font-weight:600;letter-spacing:0.08em;
+    color:var(--ink-3);text-transform:uppercase;
+  }
+  .note-field input,
+  .note-field textarea{
+    font-family:inherit;font-size:12.5px;color:var(--ink-0);
+    border:1px solid var(--line);background:var(--bg);
+    padding:7px 9px;border-radius:3px;outline:none;
+    transition:border-color 0.15s;
+    line-height:1.5;resize:vertical;
+  }
+  .note-field input:focus,
+  .note-field textarea:focus{border-color:var(--ink-0);}
+  .note-field input::placeholder,
+  .note-field textarea::placeholder{color:var(--ink-4);}
+  .m-note-status{
+    font-weight:500;letter-spacing:0.02em;text-transform:none;
+    color:var(--ink-3);font-size:10.5px;margin-left:8px;
+    font-family:ui-monospace,monospace;
+  }
+  .m-note-status.saved{color:#15803d;}
+  /* Salesforce URL section */
+  .sf-help{
+    font-weight:500;letter-spacing:0;text-transform:none;
+    color:var(--ink-4);font-size:10.5px;margin-left:8px;
+  }
+  .sf-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+  @media (max-width:640px){.sf-grid{grid-template-columns:1fr;}}
+  .sf-field{display:flex;flex-direction:column;gap:4px;}
+  .sf-field label{
+    font-size:10px;font-weight:600;letter-spacing:0.06em;
+    color:var(--ink-2);display:flex;align-items:center;gap:6px;
+  }
+  .sf-tag{
+    display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.05em;
+    background:var(--ink-0);color:#fff;
+    padding:2px 6px;border-radius:2px;text-transform:uppercase;line-height:1.3;
+  }
+  .sf-tag-opp{background:#1e3a8a;}
+  .sf-tag-acc{background:#3f3f46;}
+  .sf-tag-etc{background:transparent;color:var(--ink-1);border:1px solid var(--ink-1);}
+  .sf-input-wrap{
+    display:flex;align-items:stretch;
+    border:1px solid var(--line);
+    border-radius:3px;background:var(--bg);
+    transition:border-color 0.15s;
+  }
+  .sf-input-wrap:focus-within{border-color:var(--ink-0);}
+  .sf-input-wrap input{
+    flex:1;border:none;outline:none;
+    padding:7px 9px;
+    font-family:ui-monospace,SFMono-Regular,monospace;font-size:11.5px;color:var(--ink-0);
+    background:transparent;min-width:0;
+  }
+  .sf-input-wrap input::placeholder{
+    font-family:ui-monospace,monospace;color:var(--ink-4);font-size:10.5px;
+  }
+  .sf-open{
+    background:var(--bg-mute);border:none;border-left:1px solid var(--line);
+    color:var(--ink-2);cursor:pointer;
+    padding:0 12px;font-size:14px;
+    font-family:inherit;transition:all 0.15s;
+  }
+  .sf-open:hover{background:var(--ink-0);color:#fff;}
+  .sf-open:disabled{opacity:0.35;cursor:not-allowed;}
+  .sf-open:disabled:hover{background:var(--bg-mute);color:var(--ink-2);}
+  .m-section{margin-bottom:24px;}
+  .m-section:last-child{margin-bottom:0;}
+  .m-section-title{
+    font-size:10px;font-weight:700;letter-spacing:0.12em;
+    color:var(--ink-3);text-transform:uppercase;
+    margin-bottom:12px;display:flex;align-items:center;gap:8px;
+  }
+  .m-section-title::after{content:"";flex:1;height:1px;background:var(--line);}
+  /* Depts */
+  .depts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+  @media (max-width:640px){.depts{grid-template-columns:1fr;}}
+  .dept{
+    position:relative;
+    display:flex;flex-direction:column;gap:4px;
+    padding:14px 14px 12px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .dept:hover{border-color:var(--ink-0);background:var(--bg-mute);}
+  .dept.has-notes{border-left:3px solid var(--ink-0);}
+  .dept.has-notes::after{
+    content:"●";position:absolute;top:8px;right:32px;
+    font-size:8px;color:#15803d;
+  }
+  .dept-name{
+    font-size:13px;font-weight:600;color:var(--ink-0);
+    display:flex;align-items:center;gap:6px;padding-right:24px;
+  }
+  .dept-name::before{content:"›";color:var(--ink-3);font-weight:400;}
+  .dept-desc{font-size:11.5px;color:var(--ink-2);line-height:1.5;}
+  .dept-cta{
+    margin-top:8px;font-size:10px;font-weight:600;letter-spacing:0.06em;
+    color:var(--ink-0);text-transform:uppercase;
+    border-top:1px solid var(--line);padding-top:8px;
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
+  .dept-cta-note{
+    color:var(--ink-3);font-family:ui-monospace,monospace;
+    font-size:9.5px;letter-spacing:0.02em;font-weight:500;text-transform:none;
+  }
+  .dept-cta-arrow{color:var(--ink-0);font-family:ui-monospace,monospace;}
+  /* Centers (from Excel) */
+  .centers-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:11.5px;
+  }
+  .centers-table th{
+    text-align:left;font-weight:600;
+    padding:8px 10px;
+    border-bottom:1px solid var(--ink-0);
+    color:var(--ink-3);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+  }
+  .centers-table td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+    color:var(--ink-1);vertical-align:top;
+  }
+  .centers-table tr:last-child td{border-bottom:none;}
+  .centers-table .addr{color:var(--ink-2);font-size:11px;}
+  .centers-table .area{
+    font-family:ui-monospace,monospace;
+    text-align:right;color:var(--ink-0);font-weight:500;white-space:nowrap;
+  }
+  .centers-table .items{color:var(--ink-3);font-size:10.5px;}
+  .empty-note{
+    font-size:12px;color:var(--ink-3);padding:14px;
+    background:var(--bg-mute);text-align:center;
+    border:1px dashed var(--line);
+  }
+  /* === FOOTER === */
+  .footer{
+    border-top:1px solid var(--line);
+    padding:20px 32px;
+    max-width:1380px;margin:0 auto;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    font-size:11px;color:var(--ink-3);
+  }
+  .footer code{
+    font-family:ui-monospace,monospace;
+    background:var(--bg-mute);padding:1px 5px;border-radius:2px;
+  }
+  /* Toast */
+  .toast{
+    position:fixed;bottom:24px;left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink-0);color:#fff;
+    padding:10px 16px;
+    font-size:12px;border-radius:3px;
+    opacity:0;pointer-events:none;
+    transition:all 0.25s ease;
+    z-index:1000;
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  /* Parks section */
+  .parks-section{
+    max-width:1380px;margin:0 auto;
+    padding:0 32px 60px;
+  }
+  .parks-head{
+    padding:30px 0 16px;
+    border-bottom:1px solid var(--ink-0);
+    margin-bottom:0;
+    display:flex;align-items:baseline;justify-content:space-between;
+  }
+  .parks-head h2{
+    font-size:20px;font-weight:700;letter-spacing:-0.02em;
+  }
+  .parks-head .ph-meta{font-size:11px;color:var(--ink-3);letter-spacing:0.08em;text-transform:uppercase;}
+  .parks-list{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:0;
+    border-left:1px solid var(--line);
+  }
+  .park{
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:16px 18px;
+    background:var(--bg);
+    transition:background 0.15s;
+  }
+  .park:hover{background:var(--bg-soft);}
+  .park-name{
+    font-size:13px;font-weight:600;color:var(--ink-0);
+    margin-bottom:4px;
+  }
+  .park-row{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2);margin-top:6px;line-height:1.5;}
+  .park-row .k{color:var(--ink-3);font-family:ui-monospace,monospace;font-size:10px;letter-spacing:0.05em;}
+  .park-row .v{text-align:right;}
+  .park-addr{font-size:11px;color:var(--ink-3);margin-top:4px;}
+  .park-tag{
+    display:inline-block;font-size:9px;letter-spacing:0.06em;
+    padding:1px 6px;border:1px solid var(--ink-1);color:var(--ink-1);
+    border-radius:2px;margin-top:8px;text-transform:uppercase;font-weight:600;
+  }
+  .park-tag.op{background:var(--ink-0);color:#fff;}
+  .fn-sf-tag{
+    margin-left:6px;font-size:8px;font-weight:700;
+    padding:1px 5px;background:var(--ink-0);color:#fff;
+    border-radius:2px;letter-spacing:0.06em;
+  }
+  .fn-cell{cursor:pointer;}
+  .fn-cell:hover{background:var(--bg-mute);}
+  .fn-edit-hint{
+    position:absolute;top:8px;right:10px;
+    font-size:9px;color:var(--ink-4);
+    font-family:ui-monospace,monospace;letter-spacing:0.04em;
+    opacity:0;transition:opacity 0.15s;
+  }
+  .fn-cell:hover .fn-edit-hint{opacity:1;}
+  /* Kanban card actions */
+  .kcard-actions{
+    display:flex;gap:4px;margin-top:6px;
+    opacity:0;transition:opacity 0.15s;
+  }
+  .kcard:hover .kcard-actions{opacity:1;}
+  .kcard-actions button{
+    flex:1;background:var(--bg-soft);border:1px solid var(--line);
+    color:var(--ink-2);font-size:10px;font-weight:600;
+    padding:3px 4px;border-radius:2px;cursor:pointer;
+    font-family:inherit;letter-spacing:0.02em;
+    transition:all 0.1s;
+  }
+  .kcard-actions button:hover:not(:disabled){background:var(--ink-0);color:#fff;border-color:var(--ink-0);}
+  .kcard-actions button:disabled{opacity:0.3;cursor:not-allowed;}
+  .kcol[data-stage="converted"] .kcard-actions button{
+    background:#0F0F11;border-color:#2A2A2E;color:#A1A1AA;
+  }
+  .kcol[data-stage="converted"] .kcard-actions button:hover:not(:disabled){background:#fff;color:#000;border-color:#fff;}
+  .kcol[data-stage="converted"] .kcard .sf-link{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:9px;font-weight:600;letter-spacing:0.06em;
+    color:#A1A1AA;margin-top:6px;text-transform:uppercase;
+    text-decoration:none;
+  }
+  .kcol[data-stage="converted"] .kcard .sf-link:hover{color:#fff;}
+  /* Edit modal */
+  .edit-modal-bg{
+    position:fixed;inset:0;
+    background:rgba(9,9,11,0.5);
+    z-index:300;display:none;
+    align-items:flex-start;justify-content:center;
+    padding:60px 24px 24px;
+    overflow-y:auto;
+  }
+  .edit-modal-bg.active{display:flex;}
+  .edit-modal{
+    background:var(--bg);border:1px solid var(--ink-0);
+    max-width:680px;width:100%;
+    box-shadow:0 24px 48px -12px rgba(0,0,0,0.3);
+  }
+  .edit-modal-head{
+    padding:18px 24px 14px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .edit-modal-head h3{
+    font-size:15px;font-weight:700;letter-spacing:-0.01em;
+  }
+  .edit-modal-body{padding:6px 24px 18px;max-height:60vh;overflow-y:auto;}
+  .edit-row{
+    display:grid;grid-template-columns:1fr auto;gap:12px;
+    padding:10px 0;border-bottom:1px solid var(--line);
+    align-items:center;
+  }
+  .edit-row:last-child{border-bottom:none;}
+  .edit-name{font-size:13px;font-weight:500;color:var(--ink-0);}
+  .edit-name .er-meta{font-size:10px;color:var(--ink-3);font-family:ui-monospace,monospace;margin-top:2px;display:block;}
+  .edit-select{
+    background:var(--bg);border:1px solid var(--line-strong);
+    padding:6px 10px;border-radius:3px;font-size:12px;color:var(--ink-0);
+    font-family:inherit;cursor:pointer;min-width:140px;
+  }
+  .edit-select:focus{outline:none;border-color:var(--ink-0);}
+  /* ===================== MOBILE RESPONSIVE ===================== */
+  /* Tablet */
+  @media (max-width:900px){
+    .global-toolbar{padding:10px 20px;}
+    .gt-tag{display:none;}
+    .hero{padding:40px 20px 24px;}
+    .hero h1{font-size:30px;}
+    .hero-sub{font-size:18px;}
+    .pipeline{padding:28px 20px 22px;}
+    .pipeline-head h2{font-size:20px;}
+    .toolbar{padding:16px 20px 10px;}
+    .grid{padding:8px 20px 60px;}
+    .parks-section{padding:0 20px 50px;}
+    .footer{padding:18px 20px;}
+    .modal-bg{padding:24px 16px;}
+    .modal{max-width:100%;}
+    .modal-head{padding:18px 22px 14px;}
+    .m-body{padding:18px 22px 22px;}
+  }
+  /* Mobile */
+  @media (max-width:640px){
+    body{font-size:13px;}
+    .global-toolbar{padding:9px 14px;flex-wrap:wrap;gap:8px;}
+    .gt-name{font-size:12px;}
+    .gt-right{gap:5px;}
+    .gt-btn{padding:5px 8px;font-size:10.5px;}
+    .gt-theme{padding:4px 8px;font-size:13px;}
+    .hero{padding:28px 16px 20px;}
+    .hero h1{font-size:22px;line-height:1.2;}
+    .hero-sub{font-size:15px;line-height:1.3;margin-top:4px;}
+    .hero p{font-size:13px;line-height:1.55;}
+    .eyebrow{font-size:10px;letter-spacing:0.1em;margin-bottom:12px;}
+    .stats{gap:16px;margin-top:18px;}
+    .stat-val{font-size:18px;}
+    .stat-lbl{font-size:10px;letter-spacing:0.06em;}
+    .pipeline{padding:22px 16px 18px;}
+    .pipeline-head{margin-bottom:16px;gap:14px;}
+    .pipeline-head h2{font-size:17px;}
+    .pipeline-sub{font-size:12px;}
+    .pipeline-actions{display:flex;width:100%;}
+    .pipeline-actions .btn-ghost{flex:1;padding:9px 8px;font-size:11px;}
+    .fn-cell{padding:14px 14px 12px;}
+    .fn-count .v{font-size:22px;}
+    .fn-name{font-size:13px;}
+    .toolbar{padding:14px 16px 10px;flex-direction:column;align-items:stretch;gap:10px;}
+    .legend{font-size:11px;gap:10px;flex-wrap:wrap;}
+    .search{width:100%;}
+    .search input{width:100%;min-width:0;font-size:14px;padding:10px 12px;}
+    .grid{padding:0 16px 50px;}
+    .sector{padding:18px 16px 16px;}
+    .sector-title{font-size:15px;}
+    .sector-point{font-size:11.5px;}
+    .company{font-size:12.5px;padding:11px 0;}
+    .parks-section{padding:0 16px 40px;}
+    .parks-head{padding:24px 0 12px;flex-direction:column;align-items:flex-start;gap:6px;}
+    .parks-head h2{font-size:17px;}
+    .park{padding:14px 14px;}
+    .footer{padding:16px;flex-direction:column;align-items:flex-start;gap:6px;font-size:10.5px;}
+    /* Modal full screen on mobile */
+    .modal-bg{padding:0;}
+    .modal{
+      max-width:100%;width:100%;
+      min-height:100vh;border:none;
+      box-shadow:none;
+    }
+    .modal-head{padding:16px 18px 12px;position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--line);}
+    .m-eyebrow{font-size:9px;}
+    .m-name{font-size:18px;}
+    .m-desc{font-size:12px;}
+    .m-body{padding:14px 18px 24px;}
+    .m-section{margin-bottom:18px;}
+    .m-section-title{flex-wrap:wrap;gap:4px;font-size:9.5px;}
+    .sf-help{display:block;width:100%;margin-left:0;margin-top:2px;}
+    .dept{padding:12px 12px 10px;}
+    .dept-name{font-size:12.5px;}
+    .dept-desc{font-size:11px;}
+    .centers-table{font-size:10.5px;}
+    .centers-table th,.centers-table td{padding:7px 6px;}
+    .centers-table .addr{font-size:10px;}
+    /* Drawer full screen bottom-sheet on mobile */
+    .drawer{
+      width:100%;
+      top:auto;left:0;right:0;bottom:0;
+      max-height:92vh;
+      border-left:none;border-top:1px solid var(--ink-0);
+      animation:drawerInMobile 0.28s ease;
+      box-shadow:0 -12px 32px -8px rgba(0,0,0,0.25);
+    }
+    .drawer-head{padding:14px 18px 12px;}
+    .drawer-body{padding:14px 18px 28px;}
+    .note-field label,.sf-field label{font-size:9.5px;}
+    .note-field input,.note-field textarea{font-size:13px;padding:9px 10px;}
+    .sf-input-wrap input{font-size:11px;padding:9px 10px;}
+    .sf-open{padding:0 14px;font-size:15px;}
+    /* Toast adjust */
+    .toast{bottom:16px;left:16px;right:16px;transform:translateY(20px);padding:11px 14px;font-size:12px;border-radius:4px;}
+    .toast.show{transform:translateY(0);}
+  }
+  /* Extra small */
+  @media (max-width:380px){
+    .hero h1{font-size:19px;}
+    .hero-sub{font-size:13px;}
+    .pipeline-head h2{font-size:15px;}
+    .stat-val{font-size:16px;}
+    .sector-title{font-size:14px;}
+  }
+  /* Touch device polish */
+  @media (hover:none){
+    .dept-remove{opacity:1;}
+    .park:hover,.sector:hover,.dept:hover{background:initial;}
+    .company:hover{padding-left:0;}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="eyebrow">DEEP.FINE · Sales Targeting · 2026</div>
+  <h1>Smart Glass Sales Targeting Map<br><span class="hero-sub">for Reverse Logistics Prevention &amp; Response in the Logistics Industry</span></h1>
+  <p>피킹·검수·분류 오류로 인한 반품, 오배송, 파손 — 역물류의 핵심 비용 발생점을 AI 비전 스마트글래스로 실시간 차단합니다.
+  각 섹터의 1티어/2티어 잠재 고객을 클릭하면 부서·센터별 컨택 포인트와 Salesforce 영업기회로 연결됩니다.</p>
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="stat-sectors">11</div><div class="stat-lbl">Sectors</div></div>
+    <div class="stat"><div class="stat-val" id="stat-companies">—</div><div class="stat-lbl">Target Companies</div></div>
+    <div class="stat"><div class="stat-val" id="stat-centers">—</div><div class="stat-lbl">Registered Centers</div></div>
+    <div class="stat"><div class="stat-val" id="stat-parks">60</div><div class="stat-lbl">Logistics Parks</div></div>
+  </div>
+</section>
+
+<!-- ============ MQL / SQL PIPELINE DASHBOARD ============ -->
+<section class="pipeline">
+  <div class="pipeline-head">
+    <div>
+      <div class="eyebrow small">Pipeline · Sales Funnel</div>
+      <h2>MQL &amp; SQL Progress Dashboard</h2>
+      <p class="pipeline-sub">전체 타겟 회사의 단계별 진행 현황. 칸반 카드를 <b>드래그 · 클릭</b>하여 단계를 변경하고, <b>‘단계 편집’</b>으로 명칭·설명·순서·개수를 직접 조정합니다. <b>최종 단계 이후는 Salesforce에서 관리</b>됩니다.</p>
+    </div>
+    <div class="pipeline-actions">
+      <button class="btn-ghost btn-primary" id="pipe-edit">✎ 단계 편집</button>
+      <button class="btn-ghost" id="pipe-restore">기본값</button>
+      <button class="btn-ghost" id="pipe-reset">Reset</button>
+      <button class="btn-ghost" id="pipe-export">Export CSV</button>
+    </div>
+  </div>
+
+  <!-- Funnel Bars -->
+  <div class="funnel" id="funnel"></div>
+
+  <!-- Stage columns (Kanban) -->
+  <div class="kanban" id="kanban"></div>
+
+  <div class="pipeline-note">
+    <span class="pn-mark">SF</span>
+    <span><b>최종 단계 이후의 영업기회는 Salesforce에서 관리됩니다.</b>
+    카드 드래그 · 클릭으로 단계 변경, ‘단계 편집’에서 명칭·설명·순서·개수 조정이 가능합니다.</span>
+  </div>
+</section>
+
+<!-- ============ STAGE EDITOR MODAL ============ -->
+<div class="modal-bg" id="stage-editor" onclick="if(event.target===this)closeStageEditor()">
+  <div class="modal modal-editor">
+    <div class="modal-head">
+      <div>
+        <div class="m-eyebrow">Pipeline Configuration</div>
+        <div class="m-name">퍼널 단계 편집</div>
+        <div class="m-desc">단계 명칭 · 설명 · 순서 · 개수를 자유롭게 조정하세요. <b>마지막 단계는 Salesforce로 이관되는 종료 단계</b>입니다.</div>
+      </div>
+      <button class="m-close" id="se-close">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="se-toolbar">
+        <div class="se-hint">☰ 아이콘을 드래그하여 순서를 바꿀 수 있습니다. 마지막 행이 자동으로 SF 이관 단계로 설정됩니다.</div>
+        <button class="btn-ghost" id="se-add">+ 단계 추가</button>
+      </div>
+      <div class="se-list" id="se-list"></div>
+      <div class="se-actions">
+        <button class="btn-ghost" id="se-cancel">취소</button>
+        <button class="btn-ghost btn-primary" id="se-save">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="edit-modal-bg" id="edit-modal" onclick="if(event.target===this)closeEditModal()">
+  <div class="edit-modal">
+    <div class="edit-modal-head">
+      <h3 id="edit-title">단계 편집</h3>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-ghost" onclick="closeEditModal()">취소</button>
+        <button class="btn-ghost" onclick="applyEdit()" style="background:var(--ink-0);color:#fff;border-color:var(--ink-0);">적용</button>
+      </div>
+    </div>
+    <div class="edit-modal-body" id="edit-body"></div>
+  </div>
+</div>
+
+<div class="global-toolbar">
+  <div class="gt-left">
+    <div class="gt-brand">
+      <span class="gt-mark">DF</span>
+      <span class="gt-name">DEEP.FINE</span>
+      <span class="gt-tag">Sales Targeting</span>
+    </div>
+  </div>
+  <div class="gt-right">
+    <button class="gt-btn" id="btn-export-notes" title="영업 노트를 CSV로 내보내기">⤓ 노트 CSV</button>
+    <button class="gt-btn" id="btn-export-json" title="전체 데이터를 JSON으로 백업">⤓ 백업</button>
+    <button class="gt-btn" id="btn-import-json" title="백업 JSON 불러오기">⤑ 복원</button>
+    <input type="file" id="file-import" accept="application/json,.json" style="display:none" />
+    <button class="gt-btn gt-theme" id="btn-theme" title="다크모드 전환 (T)"><span id="theme-icon">☽</span></button>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="legend">
+    <div class="legend-item"><span class="tier tier-1">T1</span> 1티어 (기재 대형 고객사)</div>
+    <div class="legend-item"><span class="tier tier-2">T2</span> 2티어 (AI 리서치 보강)</div>
+    <div class="legend-item"><span class="c-data-flag">DATA</span> 물류센터 등록 데이터 보유</div>
+  </div>
+  <div class="search">
+    <span class="search-ico">⌕</span>
+    <input id="search" type="text" placeholder="회사·섹터·품목·노트 전체 검색 —  /  키로 포커스" />
+  </div>
+</div>
+
+<main class="grid" id="grid"></main>
+
+<!-- Logistics Parks Section -->
+<section class="parks-section">
+  <div class="parks-head">
+    <h2>국가 물류단지 입주 현황 (참고용)</h2>
+    <div class="ph-meta">출처: 국토교통부 등록 단지 60개</div>
+  </div>
+  <div class="parks-list" id="parks-list"></div>
+</section>
+
+<!-- Modal -->
+<!-- Dept Detail Drawer (3rd depth: Sales Notes + Salesforce Links) -->
+<div class="drawer-bg" id="drawer" onclick="if(event.target===this)closeDrawer()">
+  <aside class="drawer">
+    <div class="drawer-head">
+      <div>
+        <div class="m-eyebrow" id="dr-company">—</div>
+        <div class="m-name" id="dr-dept">—</div>
+        <div class="m-desc" id="dr-desc">—</div>
+      </div>
+      <button class="m-close" onclick="closeDrawer()" aria-label="닫기">✕</button>
+    </div>
+    <div class="drawer-body">
+      <!-- Sales Notes -->
+      <div class="m-section">
+        <div class="m-section-title">영업 노트 · 담당자 / 현재상황
+          <span class="m-note-status" id="m-note-status"></span>
+        </div>
+        <div class="notes-grid">
+          <div class="note-field">
+            <label>딥파인 담당자 (Owner)</label>
+            <input type="text" data-note-key="owner" placeholder="예: 김영업 매니저" />
+          </div>
+          <div class="note-field">
+            <label>고객사 컨택 담당자</label>
+            <input type="text" data-note-key="contact_name" placeholder="예: 이창고 팀장" />
+          </div>
+          <div class="note-field">
+            <label>직책 / 부서</label>
+            <input type="text" data-note-key="contact_role" placeholder="예: 디지털혁신실 / 실장" />
+          </div>
+          <div class="note-field">
+            <label>이메일</label>
+            <input type="email" data-note-key="contact_email" placeholder="name@company.com" />
+          </div>
+          <div class="note-field">
+            <label>연락처</label>
+            <input type="tel" data-note-key="contact_phone" placeholder="02-0000-0000" />
+          </div>
+          <div class="note-field">
+            <label>마지막 컨택일</label>
+            <input type="date" data-note-key="last_contact" />
+          </div>
+          <div class="note-field note-field-wide">
+            <label>현재 상황 (Status)</label>
+            <textarea data-note-key="status" rows="3" placeholder="예: 1차 미팅 완료, PoC 조건 검토 중 — 다음 주 제안서 전달 예정"></textarea>
+          </div>
+          <div class="note-field note-field-wide">
+            <label>Next Action (다음 액션)</label>
+            <textarea data-note-key="next_action" rows="2" placeholder="예: 12/15 테크 데모 미팅 세팅 / 견적서 초안 속신"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Salesforce Direct Links -->
+      <div class="m-section">
+        <div class="m-section-title">Salesforce 직접 링크 · 레코드 연결
+          <span class="sf-help">URL을 붙여넣고 필드 밖을 클릭하면 자동 저장됩니다</span>
+        </div>
+        <div class="sf-grid">
+          <div class="sf-field">
+            <label><span class="sf-tag">Lead</span> 잠재고객 URL</label>
+            <div class="sf-input-wrap">
+              <input type="url" data-sf-key="lead_url" placeholder="https://...lightning.force.com/lightning/r/Lead/.../view" />
+              <button class="sf-open" data-sf-target="lead_url" title="새 탭으로 열기">↗</button>
+            </div>
+          </div>
+          <div class="sf-field">
+            <label><span class="sf-tag sf-tag-opp">Opportunity</span> 영업기회 URL</label>
+            <div class="sf-input-wrap">
+              <input type="url" data-sf-key="opp_url" placeholder="https://...lightning.force.com/lightning/r/Opportunity/.../view" />
+              <button class="sf-open" data-sf-target="opp_url" title="새 탭으로 열기">↗</button>
+            </div>
+          </div>
+          <div class="sf-field">
+            <label><span class="sf-tag sf-tag-acc">Account</span> 고객 계정 URL</label>
+            <div class="sf-input-wrap">
+              <input type="url" data-sf-key="account_url" placeholder="https://...lightning.force.com/lightning/r/Account/.../view" />
+              <button class="sf-open" data-sf-target="account_url" title="새 탭으로 열기">↗</button>
+            </div>
+          </div>
+          <div class="sf-field">
+            <label><span class="sf-tag sf-tag-etc">Custom</span> 기타 링크 (Quote/Case 등)</label>
+            <div class="sf-input-wrap">
+              <input type="url" data-sf-key="custom_url" placeholder="https://..." />
+              <button class="sf-open" data-sf-target="custom_url" title="새 탭으로 열기">↗</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="m-section">
+        <div class="m-section-title">활동 로그 · 컨택 히스토리
+          <span class="sf-help">노트 저장 시 자동 기록·수동 입력 가능</span>
+        </div>
+        <div class="log-form">
+          <input type="text" id="log-input" placeholder="예: 제안서 속신 / 1차 데모 완료 — Enter로 추가" />
+          <button class="gt-btn" id="log-add">⊕ 추가</button>
+        </div>
+        <ul class="log-list" id="log-list"></ul>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="m-eyebrow" id="m-sector">—</div>
+        <div class="m-name" id="m-name">—</div>
+        <div class="m-desc" id="m-desc">—</div>
+      </div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="m-section" id="m-depts-section">
+        <div class="m-section-title">부서 / 센터별 컨택
+          <span class="sf-help">카드를 클릭하면 영업 노트·Salesforce 링크 패널이 열립니다</span>
+        </div>
+        <div class="depts" id="m-depts"></div>
+      </div>
+      <div class="m-section" id="m-centers-section">
+        <div class="m-section-title">등록 물류센터 (출처: 첨부 엑셀 데이터)</div>
+        <div id="m-centers"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">샘플 더미 링크입니다. 실제 Salesforce URL로 교체해 주세요.</div>
+
+<footer class="footer">
+  <div>© DEEP.FINE — Smart Glass Reverse Logistics Solution · 영업 내부 사용 자료</div>
+  <div>SF 링크는 더미. <code>data-sf</code> 속성을 실제 URL로 교체 후 배포</div>
+</footer>
+
+<script>
+/* ============== EXCEL DATA (from 물류_프로스펙트_2026.xls) ============== */
+const EXCEL = {"centers":{"더짐":[{"raw_name":"더짐 주식회사","addr":"충청남도 아산시 염치읍 아산로 624","items":"생활용품 외","area":0.0,"sector":null,"priority":0}],"쿠팡로지스틱스서비스":[{"raw_name":"쿠팡로지스틱스서비스 유한회사","addr":"제주특별자치도 제주시 애월읍 장전로 33","items":"물류 운송 서비스","area":0.0,"sector":"택배","priority":0},{"raw_name":"쿠팡로지스틱스서비스 유한회사","addr":"충청북도 청주시 흥덕구 강내면 청주역로 231","items":"일상생활용품","area":0.0,"sector":"택배","priority":0},{"raw_name":"쿠팡로지스틱스서비스 유한회사","addr":"경기도 부천시 오정구 오정로 19, A동 (삼정동)","items":"택배물","area":0.0,"sector":"택배","priority":0},{"raw_name":"쿠팡로지스틱스서비스 유한회사","addr":"울산광역시 북구 효자로 112 (효문동)","items":"택배물품","area":0.0,"sector":"택배","priority":0},{"raw_name":"쿠팡로지스틱스서비스 유한회사","addr":"경기도 하남시 감초로200번길 75 (초이동)","items":"물류운송서비스","area":0.0,"sector":"택배","priority":0}],"한진":[{"raw_name":"(주)한진","addr":"전북특별자치도 군산시 외항로 928 (소룡동)","items":"컨테이너 / 일반화물","area":18210.6,"sector":"택배","priority":1},{"raw_name":"(주)한진","addr":"전라남도 광양시 태인4길 9 (태인동)","items":"슬라브 등","area":6465.0,"sector":"택배","priority":1},{"raw_name":"(주)한진 제주택배센터","addr":"제주특별자치도 제주시 다호길 121 (용담이동)","items":"택배","area":0.0,"sector":"택배","priority":0},{"raw_name":"(주)한진","addr":"충청북도 청주시 서원구 남이면 청남로 845","items":"신선식품","area":0.0,"sector":"택배","priority":0},{"raw_name":"(주)한진","addr":"경상북도 칠곡군 왜관읍 보병1길 66","items":"농기계 부품","area":0.0,"sector":"택배","priority":0}],"동원로엑스":[{"raw_name":"동원로엑스(주)","addr":"전북특별자치도 군산시 무역로 87 (오식도동)","items":"컨테이너","area":16526.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"동원로엑스(주)","addr":"강원특별자치도 강릉시 사천면 과학단지로 137-57","items":"공산품","area":2140.42,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"동원로엑스(주)","addr":"전라남도 담양군 대덕면 남대덕로 1109","items":"공산품,식료품","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"동원로엑스(주)","addr":"경상북도 경산시 진량읍 공단8로 238","items":"식품류, 원사류","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"동원로엑스(주)","addr":"강원특별자치도 동해시 공단6로 59-7 (구호동)","items":"우드칩, 우드펠럿 등 다수","area":0.0,"sector":"3PL/풀필먼트","priority":0}],"더엘":[{"raw_name":"주식회사 더엘","addr":"경기도 이천시 부발읍 중부대로1707번길 110","items":"일반식품류","area":0.0,"sector":null,"priority":0}],"제니켐상사":[{"raw_name":"(주)제니켐상사","addr":"경기도 화성시 우정읍 포승향남로 2015-26","items":"일반 화학물질(수지,수성제품)","area":0.0,"sector":null,"priority":0}],"해원물류":[{"raw_name":"해원물류","addr":"전북특별자치도 군산시 오식도동 504","items":"-","area":0.0,"sector":null,"priority":0}],"디에이치물류":[{"raw_name":"(주)디에이치물류","addr":"충청북도 음성군 맹동면 초금로 292","items":"화장품류, 태양광 설비 부품 등","area":0.0,"sector":null,"priority":0}],"롯데글로벌로지스":[{"raw_name":"롯데글로벌로지스(주) 부천집배센터","addr":"인천광역시 계양구 서운동 136-2","items":"택배수화물","area":7519.0,"sector":"택배","priority":1},{"raw_name":"롯데글로벌로지스㈜","addr":"경기도 이천시 부발읍 중부대로2000번길 33","items":"빙과류","area":6633.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"롯데글로벌로지스(주) 영등포제과센터","addr":"서울특별시 영등포구 양평로21길 25 (양평동4가)","items":"빙과류","area":1745.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"롯데글로벌로지스(주) 산막공단북2길 11","addr":"경상남도 양산시 산막공단북2길 11, (주)롯데제과 (산막동)","items":"빙과류","area":1025.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"롯데글로벌로지스(주)  (서울동부지점)","addr":"경기도 광주시 회안대로71번길 24 (매산동)","items":"택배소화물","area":0.0,"sector":"택배","priority":0}],"삼일":[{"raw_name":"(주)삼일 당진지점","addr":"충청남도 당진시 송산면 석문방조제로 530","items":"냉연코일류","area":0.0,"sector":null,"priority":0},{"raw_name":"(주)삼일당진지점","addr":"충청남도 당진시 송산면 석문방조제로 532-9","items":"봉강","area":0.0,"sector":null,"priority":0},{"raw_name":"(주)삼일","addr":"경상북도 포항시 남구 대송면 송덕로 125-15","items":"철강제품","area":0.0,"sector":null,"priority":0},{"raw_name":"(주)삼일","addr":"경상북도 포항시 남구 호동로58번길 6 (호동)","items":"선재, 코일 등","area":0.0,"sector":null,"priority":0},{"raw_name":"㈜삼일","addr":"경상북도 포항시 북구 흥해읍 영일만항로 266","items":"철제품","area":0.0,"sector":null,"priority":1}],"고려택배":[{"raw_name":"㈜고려택배","addr":"경기도 안성시 미양면 미양로 156, 3층","items":"의약품, 의약외품 등","area":0.0,"sector":"택배","priority":0},{"raw_name":"(주)고려택배","addr":"경기도 화성시 봉담읍 왕림2길 42-25","items":"의약품, 의약외품","area":0.0,"sector":"택배","priority":0}],"지에스네트웍스":[{"raw_name":"(주)지에스네트웍스 곤지암지점","addr":"경기도 광주시 곤지암읍 신대길 134-14, A동","items":"유제품 및 기타","area":5837.01,"sector":null,"priority":1},{"raw_name":"(주)지에스네트웍스 용인지점","addr":"경기도 용인시 처인구 포곡읍 포곡로 100","items":"물, 양곡, 주류, 과자, 세재 등","area":0.0,"sector":null,"priority":0},{"raw_name":"(주)지에스네트웍스 진주지점","addr":"경상남도 진주시 정촌면 화개천로 40","items":"공산품, 냉동·냉장식품 등","area":0.0,"sector":null,"priority":0},{"raw_name":"(주)지에스네트웍스 진주지점","addr":"경상남도 진주시 정촌면 화개천로 40(3층)","items":"","area":0.0,"sector":null,"priority":1},{"raw_name":"(주)지에스네트웍스 익산지점","addr":"전북특별자치도 익산시 왕궁면 국가식품로2길 41","items":"식품(공산,저온)","area":0.0,"sector":null,"priority":0}],"한국출판물류":[{"raw_name":"한국출판물류 주식회사","addr":"경기도 파주시 적성면 적성산단3로 10, 한국출판협동조합 적성물류센터","items":"서적, 출판유통","area":0.0,"sector":null,"priority":0}],"씨제이대한통운":[{"raw_name":"씨제이대한통운(주)","addr":"경상남도 창원시 성산구 적현로 319 (신촌동)","items":"일반화물 보관","area":17521.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"씨제이대한통운(주)","addr":"충청북도 진천군 이월면 밤디길 145","items":"냉동식품(만두,치킨,냉동밥 등)","area":16234.6,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"씨제이대한통운(주) 목포지사","addr":"전라남도 목포시 달동 1330-30 외","items":"수출 자동차","area":12348.84,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"씨제이대한통운㈜","addr":"경기도 오산시 수목원로88번길 33, 클라우드 M캠퍼스 오산 LOGIPOLIS 물류센터 (가수동)","items":"식품, 유제품","area":7218.15,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"씨제이대한통운 주식회사","addr":"경기도 용인시 처인구 남사읍 형제로 26, 1층","items":"냉장, 냉동식품","area":4130.2,"sector":"3PL/풀필먼트","priority":1}],"로젠":[{"raw_name":"로젠(주)","addr":"경기도 이천시 대월면 대월로932번길 94, A동","items":"택배물품보관 및 분류, 발송","area":0.0,"sector":"택배","priority":0},{"raw_name":"로젠(주)","addr":"경기도 이천시 대월면 대월로932번길 94","items":"택배","area":0.0,"sector":"택배","priority":0},{"raw_name":"로젠(주)","addr":"경기도 이천시 마장면 프리미엄아울렛로 33-80, 지하2층","items":"의류","area":0.0,"sector":"택배","priority":0},{"raw_name":"로젠 주식회사","addr":"광주광역시 광산구 하남산단4번로 19 (장덕동)","items":"택배물품보관 및 분류, 발송","area":0.0,"sector":"택배","priority":0},{"raw_name":"로젠 주식회사","addr":"경기도 이천시 진상미로 1894, 3층 (대포동)","items":"일반 택배물품","area":0.0,"sector":"택배","priority":0}],"쿠팡":[{"raw_name":"쿠팡풀필먼트서비스 유한회사","addr":"경상남도 김해시 진례면 테크노밸리로 220","items":"신선식품 및 냉장냉동식품","area":10730.64,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"쿠팡풀필먼트서비스 유한회사","addr":"충청남도 천안시 서북구 성거읍 새터길 5","items":"가구,전자제품,가공식품(상온)생활용품 등","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"쿠팡풀필먼트서비스 유한회사","addr":"경기도 안성시 죽산면 녹배길 35","items":"가구,전자제품 등","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"쿠팡풀필먼트서비스 유한회사(경기광주 5센터)","addr":"경기도 광주시 오포로297번길 35 (문형동)","items":"가구, 전자제품, 생활용품 등","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"쿠팡풀필먼트서비스 유한회사","addr":"경기도 안산시 단원구 시화호수로 835, 시화MTV물류센터 1.2층 (성곡동)","items":"가구,전자제품,가공식품,생활용품 등","area":0.0,"sector":"3PL/풀필먼트","priority":0}],"인터지스":[{"raw_name":"인터지스(주)","addr":"경기도 이천시 마장면 서이천로320번길 165","items":"생활용품","area":0.0,"sector":"육상운송","priority":0},{"raw_name":"인터지스(주)","addr":"울산광역시 남구 산업로 134 인터지스(주) 울산영업소","items":"","area":0.0,"sector":"육상운송","priority":1},{"raw_name":"인터지스 주식회사","addr":"인천광역시 남동구 호구포로 78, A동 (고잔동)","items":"생활용품","area":0.0,"sector":"육상운송","priority":0},{"raw_name":"주식회사 인터지스","addr":"경기도 이천시 부발읍 황무로 1840","items":"소비재(생활용품)","area":0.0,"sector":"육상운송","priority":0},{"raw_name":"인터지스신항센터㈜","addr":"경상남도 창원시 진해구 신항5로 15-67, 1층(용문동)","items":"기계부품류, 전자부품","area":0.0,"sector":"육상운송","priority":1}],"용마로지스":[{"raw_name":"용마로지스(주)","addr":"경기도 안성시 미양면 구수길 72","items":"생활용품 外","area":0.0,"sector":null,"priority":0},{"raw_name":"용마로지스(주)","addr":"경기도 이천시 호법면 덕평로 472-96, 켄달스퀘어","items":"마스크 등","area":0.0,"sector":null,"priority":0},{"raw_name":"용마로지스(주)","addr":"경기도 용인시 기흥구 구갈로 71-25 (신갈동)","items":"화장품,렌즈","area":0.0,"sector":null,"priority":0},{"raw_name":"용마로지스(주)","addr":"경기도 김포시 고촌읍 아라육로 78","items":"의약품외","area":0.0,"sector":null,"priority":0},{"raw_name":"용마로지스(주)","addr":"경기도 이천시 설성면 진상미로264번길 21-19","items":"의약품, 건강기기","area":0.0,"sector":null,"priority":0}],"LX판토스":[{"raw_name":"(주)LX판토스","addr":"경상남도 밀양시 부북면 사포로 91","items":"가전제품","area":0.0,"sector":"국제물류주선업","priority":0},{"raw_name":"LX판토스","addr":"인천광역시 서구 원석로 196, 7층 (원창동)","items":"쇼핑몰 판매물품 등","area":0.0,"sector":"국제물류주선업","priority":0},{"raw_name":"(주)판토스","addr":"전라남도 장성군 동화면 동화로 342-8","items":"네트워크 장비","area":0.0,"sector":"국제물류주선업","priority":0}],"한익스프레스":[{"raw_name":"(주)한익스프레스","addr":"경기도 이천시 설성면 원설로 241","items":"차량용품, 식품등","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"(주)한익스프레스","addr":"울산광역시 남구 처용로487번길 18-6, 한익스프레스 D동(성암동)","items":"플라스틱 수지류","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"(주)한익스프레스","addr":"인천광역시 서구 북항로245번길 13-22 (원창동)","items":"화장품","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"(주)한익스프레스","addr":"경기도 이천시 대월면 대월로932번길 94","items":"주류","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"(주)한익스프레스","addr":"경기도 이천시 대월면 대월로 627-61 (주식회사부국물산)","items":"홍삼류","area":0.0,"sector":"3PL/풀필먼트","priority":0}],"아워박스":[{"raw_name":"아워박스㈜","addr":"경기도 오산시 오산로 149, 켄달스퀘어 오산DC (오산동)","items":"식품류, 일반공산품, 가정용품","area":12499.2,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"아워박스(주)","addr":"경상남도 양산시 어곡공단6길 50, 3층 (어곡동)","items":"라면 등 가공식품, 클렌저 등 화장품","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"아워박스 주식회사","addr":"경기도 용인시 처인구 양지면 죽양대로2071번길 7, 양지물류 나동 지상층","items":"식품류, 일반공산품, 가정용품, 주류, 부품류","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"아워박스 주식회사","addr":"경기도 용인시 처인구 백암면 죽양대로 956-8, (주)에이블로지스 물류센터","items":"라면 등 가공식품, 클렌저 등 화장품","area":0.0,"sector":"3PL/풀필먼트","priority":0}],"은산해운항공":[{"raw_name":"은산해운항공(주)경인터미널","addr":"인천광역시 서구 갑문1로 10 (오류동)","items":"일반화물","area":0.0,"sector":"항공","priority":0},{"raw_name":"은산해운항공(주) 경인터미널2","addr":"인천광역시 서구 갑문3로 26 (오류동)","items":"일반화물","area":0.0,"sector":"항공","priority":0}],"동방":[{"raw_name":"(주)동방 목포지사","addr":"전라남도 영암군 삼호읍 대불로 629","items":"선박블록 및 플랜트 화물","area":38135.0,"sector":"육상운송","priority":1},{"raw_name":"(주)동방목포지사","addr":"전라남도 영암군 삼호읍 대불역로 133","items":"컨테이너,컨테이너적출입,기타일반화물","area":16008.0,"sector":"육상운송","priority":1},{"raw_name":"(주)동방 목포지사","addr":"전라남도 목포시 달동 1330-30 호 외","items":"수출자동차","area":12343.83,"sector":"육상운송","priority":1},{"raw_name":"(주)동방 포항지사","addr":"경상북도 포항시 남구 대송로 167 (괴동동)","items":"원자재,코일류","area":0.0,"sector":"육상운송","priority":0},{"raw_name":"(주)동방광양지점","addr":"전라남도 광양시 백운1로 79 (태인동)","items":"코일, 철판류","area":0.0,"sector":"육상운송","priority":0}],"세방":[{"raw_name":"(주)세방(ICD 10단지)","addr":"경상남도 양산시 물금읍 제방로 125, 양산 ICD 10단지","items":"수입수출품","area":49017.62,"sector":"육상운송","priority":1},{"raw_name":"세방(주) 목포지사","addr":"전라남도 목포시 달동 1330번지 30호 외","items":"수출자동차","area":12343.0,"sector":"육상운송","priority":1},{"raw_name":"세방(주)","addr":"전라남도 광양시 태인4길 45 (태인동)","items":"코일","area":0.0,"sector":"육상운송","priority":0},{"raw_name":"세방(주)","addr":"경상북도 포항시 남구 오천읍 냉천로 508","items":"철강제품","area":0.0,"sector":"육상운송","priority":0},{"raw_name":"세방(주)","addr":"경기도 안성시 양성면 남북대로 2066","items":"건강식품 등","area":0.0,"sector":"육상운송","priority":0}],"CJ대한통운":[{"raw_name":"(주)CJ대한통운","addr":"경상북도 구미시 산호대로 264-16 (공단동)","items":"자동차배터리","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"CJ대한통운(주)","addr":"부산광역시 강서구 미음국제4로 28, CJ대한통운(주) 1동 (미음동)","items":"택배물품(잡화)","area":0.0,"sector":"택배","priority":0},{"raw_name":"CJ대한통운(주)","addr":"경기도 이천시 마장면 덕평로 816-38 (SLX물류센터)","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"CJ대한통운(주) 부산생수센터","addr":"부산광역시 강서구 미음국제2로 69, A동 (미음동)","items":"생수, 탄산음료, 복사지","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"CJ대한통운 반성출장소","addr":"경상남도 진주시 이반성면 오봉산로 547","items":"농산물","area":0.0,"sector":"3PL/풀필먼트","priority":0}],"유진로지스틱스":[{"raw_name":"(주)유진로지스틱스","addr":"경기도 용인시 처인구 양지면 중부대로 2465, 양지SLC물류센터 B4층","items":"식품류(커피)","area":6431.37,"sector":null,"priority":1},{"raw_name":"㈜유진로지스틱스 부발","addr":"경기도 이천시 부발읍 황무로 1840","items":"잡화","area":0.0,"sector":null,"priority":0},{"raw_name":"(주)유진로지스틱스","addr":"충청남도 천안시 동남구 수신면 장산동길 72, 한국통운(주)","items":"화물 등","area":0.0,"sector":null,"priority":0},{"raw_name":"(주)유진로지스틱스","addr":"경기도 용인시 처인구 양지면 중부대로 2465(지4층 일부호)","items":"","area":0.0,"sector":null,"priority":1},{"raw_name":"㈜유진로지스틱스 설성","addr":"경기도 이천시 설성면 진상미로 218","items":"식품, 전자제품 등","area":0.0,"sector":null,"priority":0}],"현대글로비스":[{"raw_name":"현대글로비스(주)","addr":"충청북도 청주시 서원구 남이면 저산척북로 203-44","items":"샤시, 기타부자재","area":0.0,"sector":"국제물류주선업","priority":0},{"raw_name":"현대글로비스(주)","addr":"경상남도 양산시 물금읍 제방로 245, 양산ICD5단지(제44동, 제62동)","items":"아이스크림, 냉동만두, 해태크라운제과","area":0.0,"sector":"국제물류주선업","priority":0},{"raw_name":"현대글로비스(주)","addr":"인천광역시 중구 공항동로465번길 46 (운서동)","items":"자동차 부품, 생활 소비재 등","area":0.0,"sector":"국제물류주선업","priority":0},{"raw_name":"현대글로비스(주)","addr":"전북특별자치도 완주군 봉동읍 테크노밸리3로 65, 전주현대글로비스","items":"자동차 부품","area":0.0,"sector":"국제물류주선업","priority":0},{"raw_name":"현대글로비스(주)","addr":"대전광역시 대덕구 대전로1331번길 205, 롯데택배 5층 (대화동)","items":"제과류","area":0.0,"sector":"국제물류주선업","priority":0}],"로지스팟":[{"raw_name":"로지스팟한록(주)","addr":"경기도 오산시 오산로 149 (오산동)","items":"편의점 유음료, 유제품, 기타","area":10164.71,"sector":"화물 운송 플랫폼","priority":1},{"raw_name":"로지스팟 주식회사","addr":"경기도 용인시 처인구 남사읍 형제로 26, 지상1층","items":"냉동냉장식품","area":4019.0,"sector":"화물 운송 플랫폼","priority":1},{"raw_name":"로지스팟 주식회사","addr":"경기도 평택시 서탄면 발안로 1198-5","items":"잡화","area":0.0,"sector":"화물 운송 플랫폼","priority":0},{"raw_name":"로지스팟 주식회사","addr":"광주광역시 북구 첨단연신로77번길 20-1(연제동)","items":"잡화","area":0.0,"sector":"화물 운송 플랫폼","priority":0},{"raw_name":"로지스팟 주식회사","addr":"경상남도 창원시 진해구 두동남로 68, 7층 (두동)","items":"잡화","area":0.0,"sector":"화물 운송 플랫폼","priority":0}],"경동":[{"raw_name":"경동물류(주)","addr":"경기도 군포시 부곡동 451번지","items":"택배화물","area":0.0,"sector":"택배","priority":0},{"raw_name":"경동물류(주)","addr":"인천광역시 서구 길무로 202 (오류동)","items":" ","area":0.0,"sector":null,"priority":0},{"raw_name":"경동물류(주)","addr":"경상남도 양산시 물금읍 제방로 27-9, 1동","items":"하역","area":0.0,"sector":null,"priority":0},{"raw_name":"경동물류(주)","addr":"전라남도 장성군 서삼면 물류로 335","items":" ","area":0.0,"sector":null,"priority":0},{"raw_name":"경동물류(주)","addr":"충청남도 아산시 선장면 서부남로 101","items":"화물 하역장","area":0.0,"sector":null,"priority":0}],"대신정기":[{"raw_name":"대신정기화물자동차(주)","addr":"경상남도 김해시 상동면 동북로 463","items":"택배물품","area":0.0,"sector":"택배","priority":0},{"raw_name":"대신정기화물자동차 (주)","addr":"인천광역시 서구 갑문로 12 (오류동)","items":"택배물품","area":0.0,"sector":"택배","priority":0},{"raw_name":"대신정기화물자동차(주)","addr":"광주광역시 광산구 하남산단9번로 77 (안청동)","items":"정기화물 및 택배","area":0.0,"sector":"택배","priority":0},{"raw_name":"대신정기화물자동차 (주)","addr":"경상북도 고령군 성산면 동고령산단로 32","items":"정기화물 및 택배","area":0.0,"sector":"택배","priority":0},{"raw_name":"대신정기화물자동차(주)","addr":"경기도 군포시 번영로 82, 한국복합물류(주) 가,다,라동 (부곡동)","items":"소화물","area":0.0,"sector":null,"priority":0}],"대한통운":[{"raw_name":"씨제이 대한통운(주)","addr":"세종특별자치시 부강면 부강외천로 340","items":"기타","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"씨제이 대한통운(주)","addr":"광주광역시 북구 삼소로 266 (월출동)","items":"택배소하물","area":0.0,"sector":"택배","priority":0},{"raw_name":"CJ 대한통운","addr":"충청남도 천안시 동남구 목천읍 세종로 4755","items":"가전제품","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"대한통운에스비㈜","addr":"경상남도 창원시 진해구 신항 8로 95","items":"비철금속, 원자재,자동차 부품","area":0.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"대한통운 의왕ICD보세창고","addr":"경기도 의왕시 오봉로 175 (이동)","items":"일반","area":0.0,"sector":"3PL/풀필먼트","priority":1}],"파스토":[{"raw_name":"(주)파스토","addr":"경기도 안성시 일죽면 일생로 158","items":"화장품등 상온제품","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"(주)파스토","addr":"경기도 용인시 처인구 백암면 원설로 677","items":"냉장냉동, 생활용품, 패션용품 등","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"주식회사 파스토","addr":"경기도 용인시 처인구 백암면 원설로 691","items":"생활잡화 ,의류&amp;슈즈, 냉장/냉동식품","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"주식회사 파스토","addr":"인천광역시 서구 북항로178번길 46 (원창동)","items":"상온식품,냉장식품","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"주식회사 파스토","addr":"경기도 용인시 처인구 백암면 원설로 677(지하 2층)","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1}],"천일정기화물자동차":[{"raw_name":"천일정기화물자동차(주)","addr":"충청남도 아산시 음봉면 월산로 157","items":"lcd 패널 부품 TV 포장재 등","area":0.0,"sector":"육상운송","priority":0},{"raw_name":"천일정기화물자동차㈜","addr":"인천광역시 중구 축항대로 296번길 99","items":"자동차부품","area":0.0,"sector":"육상운송","priority":1}],"서해물류":[{"raw_name":"주식회사 서해물류","addr":"경기도 평택시 포승읍 하만호길 118","items":"석제품","area":9563.0,"sector":null,"priority":1},{"raw_name":"(유)서해물류","addr":"전북특별자치도 익산시 함라면 용산로 459, (유)서해물류","items":"소맥분, 염화칼슘","area":0.0,"sector":null,"priority":0},{"raw_name":"서해물류 보세창고","addr":"경기도 평택시 만호길 2-19 (포승읍)","items":"일반","area":0.0,"sector":null,"priority":1}],"GS네트웍스":[{"raw_name":"(주)GS네트웍스 용인남사","addr":"경기도 용인시 처인구 남사읍 당하로 121","items":"유제품, 빙과, 김밥/도시락, 간편식품, 신선/상온식품 등","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"GS네트웍스 곤지암센터","addr":"경기도 광주시 곤지암읍 신대길 134-14(1층)","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"GS네트웍스 곤지암센터","addr":"경기도 광주시 곤지암읍 신대길 134-14","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"GS네트웍스 송파지점","addr":"서울특별시 송파구 송파대로 55(서울복합물류 지하1층 장지동)","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1}],"한국파렛트풀":[{"raw_name":"한국파렛트풀㈜","addr":"경상북도 안동시 북후면 물한길 16-13","items":"비료","area":0.0,"sector":"파렛트 렌탈","priority":0},{"raw_name":"한국(주)","addr":"경기도 안성시 일죽면 죽화로 139-1","items":"","area":0.0,"sector":null,"priority":1}],"현대무벡스":[{"raw_name":"(주)벡스","addr":"인천광역시 중구 자유무역로 25, 동관3층 G3-5호 (운서동)","items":"반도체 부품 외","area":0.0,"sector":null,"priority":0}],"로지스올":[{"raw_name":"로지스올 홈케어","addr":"경기도 용인시 처인구 백암면 청계로 124","items":"가전제품, 헬스용품 등","area":0.0,"sector":"3PL/풀필먼트","priority":0},{"raw_name":"로지스올 이천물류센터","addr":"경기도 이천시 마장면 마도로223번길 89(지하1층)","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"로지스올 이천 물류센터","addr":"경기도 이천시 마장면 마도로223번길 89","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"로지스올 동안성 콜드체인센터","addr":"경기도 안성시 일죽면 주래본죽로 182-27(가동)","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1},{"raw_name":"로지스올 동안성 콜드체인센터","addr":"경기도 안성시 일죽면 주래본죽로 182-27, 3층","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1}],"다원로직스":[{"raw_name":"주식회사 다원로직스","addr":"경기도 평택시 포승읍 하만호길 209, 다원로직스","items":"석재 외","area":6930.0,"sector":null,"priority":1}],"선광":[{"raw_name":"㈜피에이치선광","addr":"경기도 평택시 포승읍 서동대로 437-105","items":"자동차","area":0.0,"sector":"육상운송","priority":1},{"raw_name":"㈜선광","addr":"인천광역시 중구 서해대로 93번길 78","items":"철강재, 공컨테이너 등","area":0.0,"sector":"육상운송","priority":1},{"raw_name":"㈜선광","addr":"인천광역시 중구 축항대로211번길 37","items":"자동차, 양곡, 원목, 잡화","area":0.0,"sector":"육상운송","priority":1},{"raw_name":"선광종합물류㈜ 제2보세창고","addr":"인천광역시 중구 서해대로30번길 32","items":"일반","area":0.0,"sector":"육상운송","priority":1},{"raw_name":"선광신컨테이너터미널보세창고","addr":"인천광역시 연수구 인천신항대로 707 (송도동, 선광신컨테이너터미널)","items":"컨테이너전용","area":0.0,"sector":"육상운송","priority":1}],"태웅로직스":[{"raw_name":"태웅물류센터㈜","addr":"전라남도 광양시 항만7로 71-85","items":"비철금속","area":0.0,"sector":null,"priority":1}],"KCTC":[{"raw_name":"KCTC㈜","addr":"경상남도 창원시 마산회원구 자유무역1길 34","items":"수출입기자재","area":0.0,"sector":"육상운송","priority":1},{"raw_name":"KCTC의왕ICD 보세창고","addr":"경기도 의왕시 오봉로 175 (이동)","items":"일반","area":0.0,"sector":"육상운송","priority":1}],"대한항공":[{"raw_name":"대한항공 김포 영업용 보세창고","addr":"서울특별시 강서구 하늘길 246 (공항동)","items":"일반","area":0.0,"sector":"항공","priority":1},{"raw_name":"대한항공씨앤디서비스 제2자가 보세창고","addr":"인천광역시 중구 공항동로465번길 96 (운서동)","items":"일반","area":0.0,"sector":"항공","priority":1},{"raw_name":"대한항공씨앤디서비스제주 자가보세창고","addr":"제주특별자치도 제주시 공항로 2 (용담이동)","items":"일반","area":0.0,"sector":"항공","priority":1},{"raw_name":"대한항공씨앤디서비스(주)자가용보세창고","addr":"인천광역시 중구 공항동로465번길 130 (운서동)","items":"일반","area":0.0,"sector":"항공","priority":1},{"raw_name":"대한항공씨앤디서비스 김포 보세창고","addr":"서울특별시 강서구 하늘길 251 (공항동)","items":"일반","area":0.0,"sector":"항공","priority":1}],"아시아나":[{"raw_name":"게이트고메코리아 아시아나 공동보세창고","addr":"인천광역시 중구 공항동로2길 103 (운서동)","items":"일반","area":0.0,"sector":"항공","priority":1},{"raw_name":"아시아나항공(주)인천화물","addr":"서울특별시 강서구 하늘길 210 (공항동, 한국항공화물청사)","items":"일반","area":0.0,"sector":"항공","priority":1},{"raw_name":"아시아나에어포트(주)","addr":"인천광역시 중구 공항동로295번길 77-45(1층 운서동, 외항사화물터미널)","items":"","area":0.0,"sector":"항공","priority":1}],"코텍":[{"raw_name":"(주)에어로코텍 2공장","addr":"경상남도 사천시 사남면 외국기업로 35 (주)에어로코텍 2공장","items":"","area":0.0,"sector":"항공","priority":1},{"raw_name":"(주)코텍","addr":"경상남도 창원시 성산구 웅남로 826 (성주동)","items":"","area":0.0,"sector":null,"priority":1}],"바로고":[{"raw_name":"바로고","addr":"강원특별자치도 강릉시 강동면 임곡로 302(나동 1층)","items":"","area":0.0,"sector":"이륜차 라스트마일","priority":1},{"raw_name":"주식회사 바로고","addr":"강원특별자치도 강릉시 강동면 임곡로 302","items":"","area":0.0,"sector":"이륜차 라스트마일","priority":1}],"한국컨테이너풀":[{"raw_name":"한국컨테이너풀(주)","addr":"경기도 이천시 부발읍 경충대로 2330-91","items":"","area":0.0,"sector":"파렛트 렌탈","priority":1},{"raw_name":"한국컨테이너풀(주)","addr":"경기도 용인시 처인구 원삼면 미평로 84, LotteMart물류센터","items":"","area":0.0,"sector":"파렛트 렌탈","priority":1},{"raw_name":"한국컨테이너풀(주) 안성센터","addr":"경기도 안성시 죽산면 송문주로 219","items":"","area":0.0,"sector":"파렛트 렌탈","priority":1}],"에어제타":[{"raw_name":"에어제타(주)","addr":"인천광역시 중구 공항동로295번길 77-65(운서동)","items":"","area":0.0,"sector":"항공","priority":1},{"raw_name":"에어제타(주)","addr":"인천광역시 중구 공항동로295번길 77-65 (운서동)","items":"","area":0.0,"sector":"항공","priority":1}],"BGF로지스":[{"raw_name":"(주)BGF로지스","addr":"경상남도 진주시 정촌면 화개천로 50","items":"","area":0.0,"sector":"3PL/풀필먼트","priority":1}]},"parks":[{"name":"강릉종합 물류단지","operator":"원익엘앤디(주)","addr":"강원도 강릉시 구정면 제비리 733-2","tenants":"","status":"운영중","area":174236.0,"occupancy":47.0},{"name":"광주오포 물류단지","operator":"오포물류(주)","addr":"경기도 광주시 문형동 900","tenants":"","status":"운영중","area":191311.0,"occupancy":0.0},{"name":"광주도척 물류단지","operator":"(주)현대그린푸드","addr":"경기도 광주시 도척로 401-61(도척면)","tenants":"현대그린푸드, 팔도","status":"운영중","area":278016.0,"occupancy":100.0},{"name":"광주초월 물류단지","operator":"(주)미래로지텍","addr":"경기도 광주시 초월읍 신월리 794","tenants":"아워홈, CJ대한통운","status":"운영중","area":264529.0,"occupancy":100.0},{"name":"남여주 물류단지","operator":"여주시","addr":"경기도 여주시 연라동 659-1","tenants":"","status":"운영중","area":202577.0,"occupancy":0.0},{"name":"평택종합 물류단지","operator":"평택시","addr":"경기도 평택시 도일유통길 87(도일동)","tenants":"한국타이어, 농협","status":"운영중","area":486062.0,"occupancy":99.0},{"name":"여주첼시 물류단지","operator":"(주)신세계사이먼","addr":"경기도 여주시 명품로 360","tenants":"신세계인터내셔널","status":"운영중","area":264242.0,"occupancy":88.0},{"name":"안성미양 물류단지","operator":"농협경제지주(주)","addr":"경기 안성시 미양면 보체리 407","tenants":"","status":"운영중","area":136554.0,"occupancy":100.0},{"name":"안성원곡 물류단지","operator":"경기도시공사","addr":"경기도 안성시 원곡면 칠곡리 924","tenants":"홈플러스, 데상트코리아","status":"운영중","area":682398.0,"occupancy":93.0},{"name":"이천패션 물류단지","operator":"한국패션물류(주)","addr":"경기도 이천시 마장면 프리미엄아울렛로 33-48","tenants":"아가방, 한섬","status":"운영중","area":796706.0,"occupancy":87.0},{"name":"화성동탄 물류단지","operator":"HL로지스앤코(주)","addr":"경기도 화성시 동탄물류로 48","tenants":"","status":"운영중","area":460670.0,"occupancy":100.0},{"name":"부천오정 물류단지","operator":"LH공사","addr":"경기도 부천시 오정동 802","tenants":"","status":"운영중","area":458024.0,"occupancy":0.0},{"name":"김포고촌 물류단지","operator":"한국수자원공사","addr":"경기도 김포시 아라육로20(고촌면)","tenants":"제일모직, 부림약품","status":"운영중","area":894454.0,"occupancy":99.0},{"name":"이천 BPO 물류단지","operator":"㈜바나로지스틱스","addr":"경기 이천시 마장면 장암리 산96","tenants":"","status":"운영중","area":141794.0,"occupancy":0.0},{"name":"김해 관광유통단지","operator":"경상남도","addr":"경상남도 김해시 신문동 1410","tenants":"","status":"운영중","area":878128.0,"occupancy":74.0},{"name":"안동 종합 물류단지","operator":"LH공사","addr":"경북 안동시 풍산읍 노리 800-1","tenants":"농업회사법인안동무역(주)","status":"운영중","area":224658.0,"occupancy":78.0},{"name":"대전 종합 물류단지","operator":"대전도시공사","addr":"대전 유성구 대정로68(대정동)","tenants":"집배송단지, 화물터미널, 창고단지, 도소매단지 등","status":"운영중","area":463887.0,"occupancy":100.0},{"name":"남대전종합물류단지","operator":"대전도시공사","addr":"대전 동구 대전로1(구도동)","tenants":"","status":"운영중","area":558868.0,"occupancy":90.0},{"name":"부산감천항 물류단지","operator":"(주)원양어업개발","addr":"부산 서구 원양로 105","tenants":"동원냉장","status":"운영중","area":206408.0,"occupancy":100.0},{"name":"서울동남권 물류단지","operator":"SH공사","addr":"서울 송파구 송파대로55(문정동)","tenants":"한진, 롯데글로벌로지스","status":"운영중","area":560694.0,"occupancy":100.0},{"name":"울산진장(2단계) 물류단지","operator":"울산도시공사","addr":"울산 북구 진장동 111-3","tenants":"자동차마을","status":"운영중","area":206429.0,"occupancy":93.0},{"name":"울산진장(1단계) 물류단지","operator":"LH공사","addr":"울산광역시 북구 진장동 282-1","tenants":"울산농수산물유통단지, 롯데마트, 진장디플렉스","status":"운영중","area":453436.0,"occupancy":100.0},{"name":"울산삼남 물류단지","operator":"(주)메가마트","addr":"울산 울주군 삼남면 교동리 617","tenants":"","status":"운영중","area":137299.0,"occupancy":50.0},{"name":"경인아라뱃길인천 물류단지","operator":"한국수자원공사","addr":"인천 서구 오류동 1544-3","tenants":"(주)티제이로지스","status":"운영중","area":1145026.0,"occupancy":99.0},{"name":"전주장동 물류단지","operator":"LH공사","addr":"전북 전주시 덕진구 장동 유통로 12","tenants":"한진, 전주슈퍼마켓협동조합, 장동자동차매매단지","status":"운영중","area":189151.0,"occupancy":73.0},{"name":"천안 물류단지","operator":"LH공사","addr":"충남 천안시 백석동 1112","tenants":"이마트, 굿모닝마트, 공구단지, KCC페인트, 택배영업소","status":"운영중","area":451182.0,"occupancy":0.0},{"name":"영동황간 물류단지","operator":"영동군","addr":"충북 영동군 영동황간로1452-41(마산리 720)","tenants":"(주)클라이머리홀릭, 에이블통상","status":"운영중","area":263179.0,"occupancy":68.0},{"name":"음성대소 물류단지","operator":"LH공사","addr":"충북 음성군 대소면 대물로36(오류리798)","tenants":"(주)정성식품, 서울안전유리(주)","status":"운영중","area":283934.0,"occupancy":80.0},{"name":"이천매곡 물류단지","operator":"(주)이천첨단물류","addr":"경기도 이천시 호법면 매곡리 일원","tenants":"","status":"검증통과","area":254508.0,"occupancy":0.0},{"name":"용인 양지 물류단지","operator":"양지스마텍물류(주)","addr":"경기 용인시 처인구 양지면 평창리 산86-1","tenants":"","status":"검증통과","area":107549.0,"occupancy":0.0},{"name":"화성 장안 물류단지","operator":"㈜코리아 2000","addr":"경기 화성시 장안면 어은리 77-1","tenants":"","status":"검증통과","area":303750.0,"occupancy":0.0},{"name":"용인 물류단지","operator":"㈜글로하임 외 3","addr":"경기 용인시 처인구 유방동 산 127-1","tenants":"","status":"검증통과","area":117642.0,"occupancy":0.0},{"name":"개성공단복합물류단지","operator":"개성공단복합물류단지(주)","addr":"경기 파주시 탄현동 성동리 164-8","tenants":"","status":"검증통과","area":212663.0,"occupancy":0.0},{"name":"광주 퇴촌 물류단지","operator":"지엘글로벌 디앤씨(주)","addr":"경기 광주시 퇴촌면 도수리 산39-10","tenants":"","status":"검증통과","area":302088.0,"occupancy":0.0},{"name":"용인스마트 물류단지","operator":"(주)용인스마트물류","addr":"경기 용인시 처인구 원삼면 죽능리 산79","tenants":"","status":"검증통과","area":651802.0,"occupancy":0.0},{"name":"용인NS 스마트 물류단지","operator":"(주)에스에이치로직","addr":"경기도 용인시 처인구 남사읍 봉명리 산89-1","tenants":"","status":"검증통과","area":312462.0,"occupancy":0.0},{"name":"용인서남부 물류단지","operator":"(주)에버로지스","addr":"경기 용인시 처인구 남사면 북리 산89-1","tenants":"","status":"검증통과","area":496230.0,"occupancy":0.0},{"name":"북여주IC 물류단지","operator":"(주)한라지엘에스","addr":"경기도 여주시 흥천면 문장리 227","tenants":"","status":"검증통과","area":253074.0,"occupancy":0.0},{"name":"광주학동 물류단지","operator":"(주)남이","addr":"경기도 광주시 초월읍 학동리 일원","tenants":"","status":"검증통과","area":150049.0,"occupancy":0.0},{"name":"안성장서 물류단지","operator":"(주)장서엘씨피에프브이","addr":"경기도 안성시 양성면 장서리 일원","tenants":"","status":"검증통과","area":321420.0,"occupancy":0.0},{"name":"남이천 물류단지","operator":"(주)남이천물류단지","addr":"경기도 이천시 모가면 소고리 일원","tenants":"","status":"검증통과","area":134458.0,"occupancy":0.0},{"name":"여주대신 물류단지","operator":"(주)대신로지스파크","addr":"경기도 여주시 대신면 하림리 일원","tenants":"","status":"검증통과","area":990951.0,"occupancy":0.0},{"name":"안성지문 물류단지","operator":"(주)가온LTL","addr":"경기도 안성시 원곡면 지문리","tenants":"","status":"검증통과","area":543830.0,"occupancy":0.0},{"name":"김해풍유 일반물류단지","operator":"케이앤파트너스(주)","addr":"경상남도 김해시 풍유동 179 일원","tenants":"","status":"검증통과","area":323490.0,"occupancy":0.0},{"name":"남경주IC 물류단지","operator":"(주)디에스시 외 6","addr":"경상북도 경주시 외동읍 죽동리 320-6","tenants":"","status":"검증통과","area":72720.0,"occupancy":0.0},{"name":"세종 전동물류단지","operator":"세종전동청안물류(주)","addr":"세종특별자치시 전동면 석곡리, 청람리 일원","tenants":"","status":"검증통과","area":783114.0,"occupancy":0.0},{"name":"용인 포곡 스마트 물류단지","operator":"(주)딩동","addr":"경기 용인시 포곡읍 삼계리 46번지","tenants":"","status":"건설중","area":170991.0,"occupancy":0.0},{"name":"이천 마장(IMLC) 물류단지","operator":"덕평SLC(주)","addr":"경기 이천시 마장면 양촌리 산45-5","tenants":"","status":"건설중","area":276625.0,"occupancy":0.0},{"name":"김포 감정 물류단지","operator":"㈜리드앤로지스","addr":"경기 김포시 감정동 477-10","tenants":"","status":"건설중","area":80168.0,"occupancy":0.0},{"name":"광주직동 물류단지","operator":"(주)세진인베스트먼트","addr":"경기도 광주시 직동 산27","tenants":"","status":"건설중","area":571410.0,"occupancy":0.0},{"name":"용인 국제 물류 4.0 물류단지","operator":"㈜용인중심","addr":"경기 용인시 처인구 고림동 산 28-6","tenants":"","status":"건설중","area":948410.0,"occupancy":0.0},{"name":"무등 물류단지","operator":"(주)진흥개발","addr":"경남 고성군 거류면 용산리 산5","tenants":"","status":"건설중","area":278692.0,"occupancy":0.0},{"name":"김해 죽곡일반 물류단지","operator":"(주)피에스엠","addr":"경상남도 김해시 진영읍 죽곡리 349","tenants":"","status":"건설중","area":95766.0,"occupancy":0.0},{"name":"김해 상동 물류단지","operator":"지유앤(주)","addr":"경남 김해시 상동면 대감리 산164-1","tenants":"","status":"건설중","area":161183.0,"occupancy":0.0},{"name":"동고령IC 물류단지","operator":"㈜미래산업개발 외 11","addr":"경북 고령군 성산면 득성리 56","tenants":"","status":"건설중","area":113695.0,"occupancy":0.0},{"name":"울산상천 물류단지","operator":"하나울산로지스틱스(주)","addr":"울산광역시 울주군 삼남읍 상천리 724","tenants":"","status":"건설중","area":123326.0,"occupancy":0.0},{"name":"익산 정족 물류단지","operator":"㈜태신플러스","addr":"전북 익산시 정족동 655","tenants":"","status":"건설중","area":356443.0,"occupancy":0.0},{"name":"익산왕궁 물류단지","operator":"익산왕궁물류단지(주)","addr":"전북 익산시 왕궁면 광암리 805","tenants":"","status":"건설중","area":447604.0,"occupancy":0.0},{"name":"군산 물류단지","operator":"운양개발(주)","addr":"전북 군산시 개사동 924","tenants":"","status":"건설중","area":329452.0,"occupancy":0.0},{"name":"당진 송악 물류단지","operator":"당진송악 물류단지㈜","addr":"충남 당진시 송악읍 복운리 880","tenants":"","status":"건설중","area":694709.0,"occupancy":0.0}]};
+
+/* ============== DATA STRUCTURE ============== */
+const SF = "https://deepfine.lightning.force.com/lightning/r/Opportunity/";
+const dummy = s => SF + "DUMMY_" + s + "/view";
+
+const DATA = [
+  {
+    title:"해운",
+    point:"<b>컨테이너 봉인·CSC 검사·LCL 적입 검수</b>를 스마트글래스로 영상 기록 → 양화 시 화주 클레임 반품(역적양) 분쟁 비용 절감",
+    companies:[
+      {name:"HMM", tier:1, desc:"국적 1위 컨테이너 선사 · 글로벌 8위급", excelKey:"HMM",
+       depts:[
+        {name:"컨테이너물류운영실", desc:"항만 CY/CFS 운영, 컨테이너 회수 관리", sf:dummy("HMM_CTNR_OPS")},
+        {name:"안전품질혁신실", desc:"선적 사고·클레임 대응, QHSE", sf:dummy("HMM_QHSE")},
+        {name:"부산지역본부 LOT", desc:"부산 Logistics Operation Team", sf:dummy("HMM_BUSAN_LOT")},
+        {name:"디지털전략실", desc:"AI/AX 신기술 PoC 주관", sf:dummy("HMM_DX")}
+       ]},
+      {name:"SM상선", tier:1, desc:"미주·아시아 노선 중견 선사", excelKey:"SM상선",
+       depts:[
+        {name:"컨테이너영업본부", desc:"부킹·적입 검수 표준화 필요", sf:dummy("SM_CTNR_SALES")},
+        {name:"운항관리팀", desc:"선적/양하 작업 모니터링", sf:dummy("SM_OPS")},
+        {name:"부산 터미널 운영", desc:"하역·검수 현장", sf:dummy("SM_BUSAN")}
+       ]},
+      {name:"장금상선", tier:1, desc:"아시아 역내 1위급 컨테이너 선사", excelKey:"장금상선",
+       depts:[
+        {name:"컨테이너사업부", desc:"인트라아시아 적입/봉인", sf:dummy("SINOKOR_CTNR")},
+        {name:"안전관리팀", desc:"위험물·특수화물 검수", sf:dummy("SINOKOR_SAFE")}
+       ]},
+      {name:"고려해운", tier:1, desc:"세계 컨선사 18위 · 인트라아시아 강자",
+       depts:[
+        {name:"운영본부", desc:"항만 작업·CY 회수 효율화", sf:dummy("KMTC_OPS")},
+        {name:"품질혁신팀", desc:"클레임 사후 대응 데이터화", sf:dummy("KMTC_QI")}
+       ]},
+      {name:"팬오션", tier:1, desc:"하림그룹 · 벌크/컨테이너 종합 선사",
+       depts:[
+        {name:"컨테이너사업부문", desc:"신규 컨테이너 사업 디지털화", sf:dummy("PANOCEAN_CTNR")},
+        {name:"안전관리실", desc:"양·적하 안전 점검", sf:dummy("PANOCEAN_SAFE")}
+       ]},
+      {name:"흥아라인", tier:2, desc:"특수선·케미컬 중견 해운",
+       depts:[
+        {name:"운항관리본부", desc:"위험물 적입 영상 증빙", sf:dummy("HEUNGA_OPS")},
+        {name:"안전품질팀", desc:"케미컬 케이지 검수", sf:dummy("HEUNGA_QHSE")}
+       ]},
+      {name:"남성해운", tier:2, desc:"아시아 항로 복합물류 강화 중",
+       depts:[
+        {name:"디지털플랫폼팀", desc:"IoT/AI 기반 운송 가시성 추진", sf:dummy("NAMSUNG_DX")},
+        {name:"CY/CFS 운영팀", desc:"적입·봉인 표준화", sf:dummy("NAMSUNG_CFS")}
+       ]},
+      {name:"동영해운", tier:2, desc:"인트라아시아 컨테이너 운영",
+       depts:[{name:"운영팀", desc:"항만 검수/회수 관리", sf:dummy("DONGYOUNG_OPS")}]},
+      {name:"천경해운", tier:2, desc:"근해 컨테이너·일반화물",
+       depts:[{name:"영업본부", desc:"화주 클레임 대응 영업 포인트", sf:dummy("CHEONKYUNG_SALES")}]}
+    ]
+  },
+  {
+    title:"항공",
+    point:"<b>ULD 적재·위험물(DG) 검수·파손 사진 증빙</b>을 핸즈프리로 자동화 → 항공 화물 클레임/반송(역항공) 발생률 감소",
+    companies:[
+      {name:"대한항공", tier:1, desc:"국적 1위 · 화물사업본부 글로벌 TOP10", excelKey:"대한항공",
+       depts:[
+        {name:"화물사업본부", desc:"인천 화물 터미널 운영 총괄", sf:dummy("KE_CARGO_HQ")},
+        {name:"화물터미널운영팀", desc:"ULD 빌드업·브레이크다운 검수", sf:dummy("KE_TERMINAL")},
+        {name:"안전보안실", desc:"DG/특수화물 검사", sf:dummy("KE_SAFETY")},
+        {name:"디지털혁신실", desc:"AI/AR 신기술 도입 결정권자", sf:dummy("KE_DX")}
+       ]},
+      {name:"아시아나항공", tier:1, desc:"여객+벨리카고 중심 재편", excelKey:"아시아나",
+       depts:[
+        {name:"화물본부(벨리카고)", desc:"여객기 하부 적재 검수", sf:dummy("OZ_BELLY")},
+        {name:"공항서비스팀", desc:"인천공항 화물 핸들링", sf:dummy("OZ_AIRPORT")}
+       ]},
+      {name:"에어제타", tier:1, desc:"구 에어인천 · 아시아나 화물 인수", excelKey:"에어제타",
+       depts:[
+        {name:"화물영업본부", desc:"신규 화물기 사업 표준 셋업", sf:dummy("AIRJETA_SALES")},
+        {name:"운항관리팀", desc:"적재 표준 작업 디지털화", sf:dummy("AIRJETA_OPS")}
+       ]},
+      {name:"제주항공 화물", tier:2, desc:"LCC 화물 사업 확대",
+       depts:[{name:"화물사업팀", desc:"신규 화물 운영 표준화 니즈", sf:dummy("JEJU_CARGO")}]},
+      {name:"이스타항공 카고", tier:2, desc:"LCC 화물 사업 진출",
+       depts:[{name:"카고운영팀", desc:"적재 검수 도구 신규 도입 가능", sf:dummy("ESTAR_CARGO")}]}
+    ]
+  },
+  {
+    title:"특송",
+    point:"<b>국제특송 통관 라벨·송장 확인·반송 사유 영상 캡처</b> → 오배송 반품 대응 시간 단축",
+    companies:[
+      {name:"우체국(EMS)", tier:1, desc:"국가 우편물류·국제특송",
+       depts:[
+        {name:"국제물류센터", desc:"인천 국제우편물류센터(IPLC)", sf:dummy("KPOST_IPLC")},
+        {name:"우편사업단", desc:"디지털 전환 사업 발주", sf:dummy("KPOST_BIZ")}
+       ]},
+      {name:"CJ대한통운(특송)", tier:1, desc:"국제특송 GDC·해외직구", excelKey:"CJ대한통운",
+       depts:[
+        {name:"GDC 운영팀", desc:"글로벌 권역물류센터", sf:dummy("CJ_GDC")},
+        {name:"국제특송영업팀", desc:"역직구 반품 처리 표준화", sf:dummy("CJ_INTL_EXP")}
+       ]},
+      {name:"한진(특송)", tier:1, desc:"국제특송·해외직구 통관", excelKey:"한진",
+       depts:[
+        {name:"GDC/해외직구사업부", desc:"인천 GDC 운영", sf:dummy("HANJIN_GDC")},
+        {name:"국제운송팀", desc:"통관 검수 표준화", sf:dummy("HANJIN_INTL")}
+       ]},
+      {name:"롯데글로벌로지스(국제)", tier:1, desc:"국제특송·해외직구 풀필먼트", excelKey:"롯데글로벌로지스",
+       depts:[
+        {name:"국제특송영업본부", desc:"역직구 반품 영상 증빙", sf:dummy("LGL_INTL_SALES")},
+        {name:"진천 메가허브터미널", desc:"분류·반품 통합 거점", sf:dummy("LGL_JINCHEON")}
+       ]},
+      {name:"FedEx Korea", tier:2, desc:"외자계 국제특송",
+       depts:[{name:"한국 오퍼레이션", desc:"인천공항 게이트웨이 검수", sf:dummy("FEDEX_OPS")}]},
+      {name:"DHL Korea", tier:2, desc:"외자계 국제특송",
+       depts:[{name:"Express Operations", desc:"세관 검수·라벨링 디지털화", sf:dummy("DHL_OPS")}]},
+      {name:"UPS Korea", tier:2, desc:"외자계 국제특송",
+       depts:[{name:"Gateway Operations", desc:"인천 게이트웨이", sf:dummy("UPS_GATEWAY")}]}
+    ]
+  },
+  {
+    title:"택배",
+    point:"<b>SUB 터미널 분류 오류·집배센터 오배송</b>을 스마트글래스 비전 AI로 차단 → 재배송/반품 비용 절감",
+    companies:[
+      {name:"CJ대한통운", tier:1, desc:"점유율 1위 · 곤지암 메가허브", excelKey:"CJ대한통운",
+       depts:[
+        {name:"곤지암 메가허브터미널", desc:"국내 최대 분류 거점", sf:dummy("CJ_GONJIAM")},
+        {name:"e-풀필먼트사업부", desc:"풀필먼트 검수 자동화", sf:dummy("CJ_EFC")},
+        {name:"택배운영본부", desc:"전국 SUB 터미널 총괄", sf:dummy("CJ_TBX_OPS")},
+        {name:"TES물류기술연구소", desc:"R&D·AI 검증 채널", sf:dummy("CJ_TES")}
+       ]},
+      {name:"롯데글로벌로지스", tier:1, desc:"점유율 3위 · 진천 메가허브", excelKey:"롯데글로벌로지스",
+       depts:[
+        {name:"진천 메가허브터미널", desc:"허브앤스포크 자동화 분류", sf:dummy("LGL_HUB")},
+        {name:"택배사업본부", desc:"집배센터 운영", sf:dummy("LGL_TBX")},
+        {name:"디지털혁신실", desc:"AI 검수 도입 PoC", sf:dummy("LGL_DX")}
+       ]},
+      {name:"한진택배", tier:1, desc:"점유율 4위 · 대전 메가허브", excelKey:"한진",
+       depts:[
+        {name:"대전 메가허브터미널", desc:"중부권 분류 거점", sf:dummy("HANJIN_DAEJEON")},
+        {name:"택배사업본부", desc:"전국 집배센터", sf:dummy("HANJIN_TBX")},
+        {name:"DT추진실", desc:"디지털 전환 부서", sf:dummy("HANJIN_DT")}
+       ]},
+      {name:"우체국택배", tier:1, desc:"국가 운영 · 전국망",
+       depts:[
+        {name:"우편물류본부", desc:"지역 집중국 분류", sf:dummy("KPOST_PARCEL")},
+        {name:"동서울우편집중국", desc:"수도권 핵심 분류 거점", sf:dummy("KPOST_DONGSEOUL")}
+       ]},
+      {name:"로젠택배", tier:1, desc:"전국 직영·대리점망", excelKey:"로젠",
+       depts:[
+        {name:"운영본부", desc:"대리점 SOP 표준화", sf:dummy("LOGEN_OPS")},
+        {name:"IT기획팀", desc:"분류 시스템 고도화", sf:dummy("LOGEN_IT")}
+       ]},
+      {name:"용마로지스", tier:1, desc:"의약품 특화 택배·물류", excelKey:"용마로지스",
+       depts:[{name:"의약품물류본부", desc:"콜드체인 검수", sf:dummy("YONGMA_PHARMA")}]},
+      {name:"경동물류(경동택배)", tier:1, desc:"화물·이사·택배 융합", excelKey:"경동",
+       depts:[{name:"택배사업부", desc:"대형 화물 검수", sf:dummy("KYOUNGDONG_TBX")}]},
+      {name:"대신정기화물자동차", tier:1, desc:"기업물류·정기 화물", excelKey:"대신정기",
+       depts:[{name:"운영팀", desc:"기업 화물 검수", sf:dummy("DAESHIN_OPS")}]},
+      {name:"쿠팡로지스틱스(CLS)", tier:2, desc:"점유율 2위 · 쿠팡 전속", excelKey:"쿠팡로지스틱스서비스",
+       depts:[
+        {name:"캠프 운영본부", desc:"전국 쿠팡 캠프", sf:dummy("CLS_CAMP")},
+        {name:"풀필먼트 운영", desc:"오배송/반품 직결", sf:dummy("CLS_FC")}
+       ]},
+      {name:"GS Postbox(GS네트웍스)", tier:2, desc:"편의점 거점 택배", excelKey:"GS네트웍스",
+       depts:[{name:"포스트박스 운영팀", desc:"편의점 집하 표준화", sf:dummy("GS_POSTBOX")}]}
+    ]
+  },
+  {
+    title:"국제물류주선업 (포워딩)",
+    point:"<b>적입 영상 증빙·CFS 혼적 검수</b>로 화주 클레임 분쟁 자료 확보 → 손해배상/반송 비용 축소",
+    companies:[
+      {name:"LX판토스", tier:1, desc:"LG계열 · 국내 포워딩 TOP", excelKey:"LX판토스",
+       depts:[
+        {name:"운영본부 CFS팀", desc:"혼적·LCL 검수 표준화", sf:dummy("LX_CFS")},
+        {name:"디지털혁신팀", desc:"DT/AI PoC 채널", sf:dummy("LX_DT")},
+        {name:"부산지점", desc:"항만 CFS 현장", sf:dummy("LX_BUSAN")}
+       ]},
+      {name:"태웅로직스", tier:1, desc:"중량·특수 화물 강자", excelKey:"태웅로직스",
+       depts:[
+        {name:"프로젝트물류본부", desc:"중량물 검수 증빙", sf:dummy("TAEWOONG_PRJ")},
+        {name:"운영지원실", desc:"표준 SOP 수립", sf:dummy("TAEWOONG_OPS")}
+       ]},
+      {name:"은산해운항공", tier:1, desc:"해상·항공 종합 포워딩", excelKey:"은산해운항공",
+       depts:[
+        {name:"해상사업본부", desc:"FCL/LCL 검수", sf:dummy("EUNSAN_OCEAN")},
+        {name:"항공사업본부", desc:"공항 ULD 검수", sf:dummy("EUNSAN_AIR")}
+       ]},
+      {name:"하나로TNS", tier:1, desc:"포워딩·통관 중견",
+       depts:[
+        {name:"통관영업팀", desc:"세관 검사 증빙", sf:dummy("HANARO_CLR")},
+        {name:"운영팀", desc:"CFS 검수", sf:dummy("HANARO_OPS")}
+       ]},
+      {name:"현대글로비스", tier:2, desc:"매출 1위 종합물류·완성차", excelKey:"현대글로비스",
+       depts:[
+        {name:"완성차사업본부", desc:"PDI 검수 영상화", sf:dummy("GLOVIS_CAR")},
+        {name:"종합물류사업본부", desc:"포워딩/3PL", sf:dummy("GLOVIS_LOG")},
+        {name:"디지털전략실", desc:"AI/AX 의사결정", sf:dummy("GLOVIS_DX")}
+       ]},
+      {name:"삼성SDS 물류BPO", tier:2, desc:"Cello 플랫폼 · 삼성 전속",
+       depts:[
+        {name:"Cello Square 운영", desc:"포워딩 플랫폼", sf:dummy("SDS_CELLO")},
+        {name:"물류BPO사업부", desc:"고객 PoC 채널", sf:dummy("SDS_BPO")}
+       ]},
+      {name:"우진글로벌로지스틱스", tier:2, desc:"중견 포워딩",
+       depts:[{name:"운영본부", desc:"화주 클레임 대응", sf:dummy("WOOJIN_OPS")}]}
+    ]
+  },
+  {
+    title:"3PL 및 풀필먼트",
+    point:"<b>피킹·검수·패킹·반품 입고</b> 4대 작업을 핸즈프리 영상 기록 → 반품 재입고 SLA 50%↓, 오피킹률 80%↓ 기대",
+    companies:[
+      {name:"CJ대한통운(풀필먼트)", tier:1, desc:"국내 1위 · 곤지암/용인 풀필먼트", excelKey:"씨제이대한통운",
+       depts:[
+        {name:"곤지암 풀필먼트센터", desc:"네이버 NFA 운영 거점", sf:dummy("CJFC_GONJIAM")},
+        {name:"용인 풀필먼트센터", desc:"이커머스 풀필먼트", sf:dummy("CJFC_YONGIN")},
+        {name:"이커머스본부", desc:"풀필먼트 영업 의사결정", sf:dummy("CJFC_EC")}
+       ]},
+      {name:"로지스올(컨설팅/물류)", tier:1, desc:"파렛트·풀필먼트·물류자동화 종합", excelKey:"로지스올",
+       depts:[
+        {name:"로지스올컨설팅", desc:"PoC·신기술 도입 채널", sf:dummy("LOGISALL_CONS")},
+        {name:"한국로지스풀", desc:"3PL 운영", sf:dummy("LOGISALL_KLP")}
+       ]},
+      {name:"삼영물류", tier:1, desc:"화학·소재 특화 3PL",
+       depts:[{name:"운영본부", desc:"위험물 보관 검수", sf:dummy("SAMYOUNG_OPS")}]},
+      {name:"두손컴퍼니", tier:1, desc:"이커머스 풀필먼트 · 품고",
+       depts:[
+        {name:"품고(품고 운영팀)", desc:"SMB 풀필먼트", sf:dummy("DUSON_PUMGO")},
+        {name:"인천 FC", desc:"검수 자동화 니즈", sf:dummy("DUSON_FC")}
+       ]},
+      {name:"아워박스", tier:1, desc:"이커머스 풀필먼트 전문", excelKey:"아워박스",
+       depts:[
+        {name:"FC 운영팀", desc:"피킹·반품 입고 검수", sf:dummy("OURBOX_FC")},
+        {name:"시스템팀", desc:"WMS 연동", sf:dummy("OURBOX_SYS")}
+       ]},
+      {name:"파스토(FASSTO)", tier:1, desc:"풀스택 풀필먼트 · 이천 메가센터", excelKey:"파스토",
+       depts:[
+        {name:"이천 풀필먼트센터", desc:"국내 최대 단일 풀필먼트", sf:dummy("FASSTO_ICHEON")},
+        {name:"기술전략실", desc:"AI 비전 PoC 채널", sf:dummy("FASSTO_RND")}
+       ]},
+      {name:"동원로엑스", tier:2, desc:"콜드체인·풀필먼트 강자", excelKey:"동원로엑스",
+       depts:[
+        {name:"콜드체인사업본부", desc:"신선식품 검수", sf:dummy("DONGWON_COLD")},
+        {name:"풀필먼트사업부", desc:"신규 풀필먼트 확장", sf:dummy("DONGWON_FC")}
+       ]},
+      {name:"한익스프레스", tier:2, desc:"한화계열 · 풀필먼트솔루션", excelKey:"한익스프레스",
+       depts:[
+        {name:"풀필먼트솔루션사업부", desc:"3PL/FC 운영", sf:dummy("HANEX_FS")},
+        {name:"화학물류본부", desc:"화학 특화", sf:dummy("HANEX_CHEM")}
+       ]},
+      {name:"BGF로지스", tier:2, desc:"CU 편의점 물류 · 풀필먼트", excelKey:"BGF로지스",
+       depts:[{name:"FC 운영팀", desc:"편의점 라스트마일 연계", sf:dummy("BGF_FC")}]},
+      {name:"GS네트웍스", tier:2, desc:"GS그룹 통합 물류", excelKey:"GS네트웍스",
+       depts:[{name:"이커머스물류본부", desc:"풀필먼트 신사업", sf:dummy("GS_ECOM")}]},
+      {name:"유진로지스틱스", tier:2, desc:"양지SLC · 종합 3PL", excelKey:"유진로지스틱스",
+       depts:[{name:"양지SLC 운영", desc:"커피·식품 풀필먼트", sf:dummy("EUGENE_LOG")}]}
+    ]
+  },
+  {
+    title:"육상운송",
+    point:"<b>상·하차 시 화물 파손 영상 증빙</b>으로 운송 클레임 분쟁 자료 확보 → 회수/재배송(역운송) 비용 감소",
+    companies:[
+      {name:"동방", tier:1, desc:"항만하역·중량물 운송", excelKey:"동방",
+       depts:[
+        {name:"하역사업본부", desc:"부산/광양 터미널", sf:dummy("DONGBANG_PORT")},
+        {name:"육상운송팀", desc:"중량물 운송 검수", sf:dummy("DONGBANG_LAND")}
+       ]},
+      {name:"세방", tier:1, desc:"종합물류 · 항만/육상", excelKey:"세방",
+       depts:[
+        {name:"육상운송본부", desc:"수도권/부산", sf:dummy("SEBANG_LAND")},
+        {name:"하역사업부", desc:"항만 작업 검수", sf:dummy("SEBANG_PORT")}
+       ]},
+      {name:"선광", tier:1, desc:"인천항 컨테이너 터미널", excelKey:"선광",
+       depts:[
+        {name:"터미널운영팀", desc:"인천 ICT 운영", sf:dummy("SUNKWANG_ICT")},
+        {name:"운영본부", desc:"하역·검수", sf:dummy("SUNKWANG_OPS")}
+       ]},
+      {name:"천일정기화물자동차", tier:1, desc:"전국 정기 노선 화물", excelKey:"천일정기화물자동차",
+       depts:[
+        {name:"운영팀", desc:"정기노선 검수", sf:dummy("CHEONIL_OPS")},
+        {name:"전국지점", desc:"지점별 상하차", sf:dummy("CHEONIL_BR")}
+       ]},
+      {name:"KCTC", tier:2, desc:"종합물류 · 항만하역/복합운송", excelKey:"KCTC",
+       depts:[
+        {name:"항만물류본부", desc:"부산항·평택항", sf:dummy("KCTC_PORT")},
+        {name:"내륙운송팀", desc:"육상 연계", sf:dummy("KCTC_INLAND")}
+       ]},
+      {name:"인터지스", tier:2, desc:"동국제강 계열 종합물류", excelKey:"인터지스",
+       depts:[{name:"운송사업본부", desc:"철강 중량물 운송", sf:dummy("INTERGIS_TRANS")}]}
+    ]
+  },
+  {
+    title:"화물 운송 플랫폼",
+    point:"<b>차주 상·하차 인증 영상</b>을 플랫폼 API로 자동 업로드 → 화주-차주 분쟁(반품/재배송) 즉시 해결",
+    companies:[
+      {name:"로지스팟", tier:1, desc:"B2B 미들마일 운송 플랫폼", excelKey:"로지스팟",
+       depts:[
+        {name:"운영본부", desc:"화주사 검수 SOP 통합", sf:dummy("LOGISPOT_OPS")},
+        {name:"프로덕트팀", desc:"앱·API 연동 의사결정", sf:dummy("LOGISPOT_PD")}
+       ]},
+      {name:"카카오모빌리티(카카오T 트럭커)", tier:1, desc:"카카오 미들마일", excelKey:"카카오모빌리티",
+       depts:[
+        {name:"트럭커사업실", desc:"화물 플랫폼 운영", sf:dummy("KAKAOM_TRUCKER")},
+        {name:"기술전략", desc:"AI/비전 연계 PoC", sf:dummy("KAKAOM_TECH")}
+       ]},
+      {name:"화물맨", tier:1, desc:"화물차주 매칭 플랫폼",
+       depts:[{name:"운영팀", desc:"오더 정산/분쟁", sf:dummy("HWAMULMAN_OPS")}]},
+      {name:"센디(Sendy)", tier:2, desc:"중소화주 화물 매칭",
+       depts:[{name:"운영팀", desc:"운임 견적·검수", sf:dummy("SENDY_OPS")}]},
+      {name:"티맵 화물(티맵모빌리티)", tier:2, desc:"미들마일 신규",
+       depts:[{name:"화물사업팀", desc:"운영 SOP 셋업", sf:dummy("TMAP_FRT")}]},
+      {name:"와이엘피(YLP)", tier:2, desc:"미들마일 디지털 운송",
+       depts:[{name:"운영본부", desc:"화주 검수 통합", sf:dummy("YLP_OPS")}]}
+    ]
+  },
+  {
+    title:"파렛트 렌탈",
+    point:"<b>파렛트 회수·세척 검수</b> 영상화 → 분실/파손 클레임 분쟁(역물류 자산 추적) 비용 절감",
+    companies:[
+      {name:"로지스올(한국파렛트풀)", tier:1, desc:"국내 점유율 1위 · KPP", excelKey:"한국파렛트풀",
+       depts:[
+        {name:"KPP 회수운영본부", desc:"전국 회수센터", sf:dummy("KPP_RECOVERY")},
+        {name:"세척·정비센터", desc:"검수·재투입", sf:dummy("KPP_WASH")},
+        {name:"기술전략실", desc:"IoT·AI 도입 채널", sf:dummy("KPP_TECH")}
+       ]},
+      {name:"AJ네트웍스", tier:1, desc:"렌탈 통합 · 파렛트 분리 상장",
+       depts:[
+        {name:"파렛트사업본부", desc:"렌탈·회수 운영", sf:dummy("AJ_PALLET")},
+        {name:"운영지원실", desc:"전국 데포 관리", sf:dummy("AJ_OPS")}
+       ]},
+      {name:"한국컨테이너풀(KCP)", tier:2, desc:"로지스올 계열 컨테이너 렌탈", excelKey:"한국컨테이너풀",
+       depts:[{name:"KCP 운영팀", desc:"플라스틱 컨테이너 회수", sf:dummy("KCP_OPS")}]},
+      {name:"재팬파렛트렌탈 코리아", tier:2, desc:"JPR · 글로벌 파렛트풀",
+       depts:[{name:"코리아 운영", desc:"수출입 파렛트", sf:dummy("JPR_KR")}]}
+    ]
+  },
+  {
+    title:"물류 자동화",
+    point:"<b>AGV/AMR·자동창고 작업자 검증</b>을 스마트글래스로 보조 → 자동화 설비 오류 시 반품 사고 차단",
+    companies:[
+      {name:"로지스올(컨설팅)", tier:1, desc:"AI 기반 자동화 솔루션 공급", excelKey:"로지스올",
+       depts:[
+        {name:"자동화사업본부", desc:"창고 자동화 SI", sf:dummy("LA_AUTO")},
+        {name:"PoC추진실", desc:"신기술 검증", sf:dummy("LA_POC")}
+       ]},
+      {name:"아세테크", tier:1, desc:"자동창고·AS/RS 전문",
+       depts:[
+        {name:"자동창고사업부", desc:"AS/RS 구축", sf:dummy("ASETEC_ASRS")},
+        {name:"기술연구소", desc:"R&D 협업", sf:dummy("ASETEC_RND")}
+       ]},
+      {name:"현대무벡스", tier:1, desc:"현대그룹 · 스마트물류 종합", excelKey:"현대무벡스",
+       depts:[
+        {name:"스마트물류사업부", desc:"AGV·자동창고", sf:dummy("MOVEX_LOG")},
+        {name:"AI로보틱스팀", desc:"AI/로봇 PoC", sf:dummy("MOVEX_AI")}
+       ]},
+      {name:"코텍전자", tier:1, desc:"산업용 디스플레이·물류 IT", excelKey:"코텍",
+       depts:[{name:"솔루션사업부", desc:"디바이스 협업", sf:dummy("KORTEK_SOL")}]},
+      {name:"트위니", tier:1, desc:"자율주행 물류로봇",
+       depts:[
+        {name:"사업개발팀", desc:"AMR + AR 협업", sf:dummy("TWINNY_BD")},
+        {name:"AI연구소", desc:"공간지능 협력", sf:dummy("TWINNY_AI")}
+       ]},
+      {name:"플로틱", tier:1, desc:"자율주행 물류로봇 · 풀필먼트",
+       depts:[{name:"사업본부", desc:"풀필먼트 PoC", sf:dummy("FLOTIQ_BIZ")}]},
+      {name:"포스코DX", tier:2, desc:"포스코 그룹 IT/자동화",
+       depts:[{name:"물류자동화팀", desc:"제철·물류 SI", sf:dummy("POSCO_DX")}]},
+      {name:"엘에스일렉트릭(LSE)", tier:2, desc:"산업 자동화 통합",
+       depts:[{name:"자동화솔루션사업부", desc:"PLC·SI", sf:dummy("LSE_AUTO")}]}
+    ]
+  },
+  {
+    title:"이륜차 라스트마일",
+    point:"<b>배송 완료 인증·반품 수거 영상</b> 자동 기록 → 분실/오배송 클레임 즉시 대응, 역배송 비용↓",
+    companies:[
+      {name:"바로고", tier:1, desc:"국내 1위 배달대행", excelKey:"바로고",
+       depts:[
+        {name:"운영본부", desc:"전국 지사 SOP", sf:dummy("BAROGO_OPS")},
+        {name:"기술전략실", desc:"라이더 앱·디바이스", sf:dummy("BAROGO_TECH")}
+       ]},
+      {name:"부릉(메쉬코리아)", tier:1, desc:"종합 라스트마일 · 부릉스테이션",
+       depts:[
+        {name:"부릉스테이션 운영", desc:"도심 마이크로 거점", sf:dummy("VROONG_STN")},
+        {name:"TMS팀", desc:"라이더 디바이스 연동", sf:dummy("VROONG_TMS")}
+       ]},
+      {name:"딜리온", tier:1, desc:"이륜·사륜 라스트마일",
+       depts:[{name:"운영팀", desc:"배송 인증 표준화", sf:dummy("DEALION_OPS")}]},
+      {name:"생각대로(로지올)", tier:2, desc:"전국 배달대행 강자",
+       depts:[{name:"운영본부", desc:"지사망 SOP", sf:dummy("LOGIALL_OPS")}]},
+      {name:"만나플러스", tier:2, desc:"배달대행 통합 플랫폼",
+       depts:[{name:"운영팀", desc:"가맹 거점 검수", sf:dummy("MANNAPLUS_OPS")}]},
+      {name:"쿠팡이츠 서비스", tier:2, desc:"쿠팡 라이더 직영",
+       depts:[{name:"라이더 운영", desc:"배송 인증 디바이스", sf:dummy("CPEATS_OPS")}]}
+    ]
+  }
+];
+
+/* ============== RENDER ============== */
+const grid = document.getElementById("grid");
+
+function fmtArea(n){
+  if(!n) return "—";
+  if(n>=10000) return (n/10000).toFixed(1)+"만㎡";
+  if(n>=1000) return (n/1000).toFixed(1)+"k㎡";
+  return Math.round(n)+"㎡";
+}
+
+function companyMatchesNotes(si, ci, filter){
+  // Search across all dept notes of a company
+  const c = DATA[si].companies[ci];
+  if(!c.depts) return false;
+  const pid = si + "-" + ci;
+  for(let di=0; di<c.depts.length; di++){
+    const n = NOTES[pid+"::"+di];
+    if(!n) continue;
+    const blob = [n.owner,n.contact_name,n.contact_role,n.contact_email,n.contact_phone,n.status,n.next_action,n.lead_url,n.opp_url,n.account_url,n.custom_url]
+      .filter(Boolean).join(" ").toLowerCase();
+    if(blob.includes(filter)) return true;
+    // Also check activity logs
+    const logs = LOGS[pid+"::"+di] || [];
+    for(const l of logs){ if((l.text||"").toLowerCase().includes(filter)) return true; }
+    // Dept name itself
+    if((c.depts[di].name||"").toLowerCase().includes(filter)) return true;
+  }
+  return false;
+}
+
+function renderGrid(filter){
+  grid.innerHTML = "";
+  let totalCompanies = 0;
+  DATA.forEach((sec, si)=>{
+    const sorted = [...sec.companies].sort((a,b)=>a.tier-b.tier);
+    const matched = filter ? sorted.filter(c=>{
+      const ci = sec.companies.indexOf(c);
+      return c.name.toLowerCase().includes(filter) ||
+        sec.title.toLowerCase().includes(filter) ||
+        (c.desc||"").toLowerCase().includes(filter) ||
+        companyMatchesNotes(si, ci, filter);
+    }) : sorted;
+    if(filter && matched.length===0) return;
+    totalCompanies += matched.length;
+    
+    const card = document.createElement("section");
+    card.className="sector";
+    const num = String(si+1).padStart(2,"0");
+    card.innerHTML = `
+      <div class="sector-head">
+        <span class="sector-num">${num}</span>
+        <span class="sector-title">${sec.title}</span>
+        <span class="sector-count">${matched.length} / ${sec.companies.length}</span>
+      </div>
+      <div class="sector-point">${sec.point}</div>
+      <div class="companies"></div>
+      <button class="add-slot" data-si="${si}">＋ 신규 2티어 업체 추가</button>
+    `;
+    const wrap = card.querySelector(".companies");
+    matched.forEach(c=>{
+      const ci = sec.companies.indexOf(c);
+      const tierBadge = c.tier===1
+        ? `<span class="tier tier-1">T1</span>`
+        : `<span class="tier tier-2">T2</span>`;
+      const hasData = c.excelKey && EXCEL.centers[c.excelKey];
+      const dataFlag = hasData ? `<span class="c-data-flag">DATA·${EXCEL.centers[c.excelKey].length}</span>` : `<span></span>`;
+      const btn = document.createElement("button");
+      btn.className="company";
+      btn.innerHTML = `${tierBadge}<span class="c-name">${c.name}</span>${dataFlag}<span class="c-arrow">↗</span>`;
+      btn.onclick = ()=>openModal(si, ci);
+      wrap.appendChild(btn);
+    });
+    card.querySelector(".add-slot").onclick = ()=>addSlot(si);
+    grid.appendChild(card);
+  });
+  document.getElementById("stat-companies").textContent = totalCompanies;
+}
+
+function renderParks(){
+  const list = document.getElementById("parks-list");
+  list.innerHTML = "";
+  const parks = (EXCEL.parks||[]).filter(p=>p.name && p.name!=="nan");
+  parks.forEach(p=>{
+    const el = document.createElement("div");
+    el.className="park";
+    const occ = p.occupancy ? p.occupancy.toFixed(0)+"%" : "—";
+    el.innerHTML = `
+      <div class="park-name">${p.name}</div>
+      <div class="park-addr">${p.addr||""}</div>
+      <div class="park-row"><span class="k">면적</span><span class="v">${fmtArea(p.area)}</span></div>
+      <div class="park-row"><span class="k">입주율</span><span class="v">${occ}</span></div>
+      <div class="park-row"><span class="k">시행자</span><span class="v">${p.operator||"—"}</span></div>
+      ${p.tenants ? `<div class="park-row"><span class="k">주요입점</span><span class="v">${p.tenants}</span></div>` : ""}
+      <span class="park-tag ${p.status==='운영중'?'op':''}">${p.status||"—"}</span>
+    `;
+    list.appendChild(el);
+  });
+}
+
+/* ============== MODAL ============== */
+function openModal(si, ci){
+  const sec = DATA[si];
+  const c = sec.companies[ci];
+  document.getElementById("m-sector").textContent = sec.title;
+  document.getElementById("m-name").textContent = c.name;
+  document.getElementById("m-desc").textContent = c.desc;
+  
+  // Departments — editable
+  window._currentModal = {si, ci};
+  renderDepts();
+  
+  // Centers from Excel
+  const csec = document.getElementById("m-centers-section");
+  const cwrap = document.getElementById("m-centers");
+  const centers = c.excelKey ? EXCEL.centers[c.excelKey] : null;
+  if(centers && centers.length>0){
+    csec.style.display="";
+    let rows = centers.map(ct=>`
+      <tr>
+        <td>${ct.raw_name||""}</td>
+        <td class="addr">${ct.addr||""}</td>
+        <td class="items">${ct.items||"—"}</td>
+        <td class="area">${fmtArea(ct.area)}</td>
+      </tr>
+    `).join("");
+    cwrap.innerHTML = `
+      <table class="centers-table">
+        <thead><tr><th>지점/센터명</th><th>소재지</th><th>취급품목</th><th>면적</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  } else {
+    csec.style.display="none";
+  }
+  
+  document.getElementById("modal").classList.add("active");
+  document.body.style.overflow="hidden";
+}
+
+/* ===== Notes are per-dept now: key = `${pid}::${deptIndex}` ===== */
+function noteKey(){
+  const ctx = window._currentDept;
+  if(!ctx) return null;
+  return ctx.si + "-" + ctx.ci + "::" + ctx.di;
+}
+
+function loadNotesIntoForm(){
+  const k = noteKey();
+  const n = (k && NOTES[k]) || {};
+  document.querySelectorAll("#drawer [data-note-key]").forEach(el=>{
+    el.value = n[el.dataset.noteKey] || "";
+  });
+  document.querySelectorAll("#drawer [data-sf-key]").forEach(el=>{
+    el.value = n[el.dataset.sfKey] || "";
+  });
+  updateSfButtons();
+  const stat = document.getElementById("m-note-status");
+  if(n.updated){
+    stat.textContent = "✓ 저장됨 · "+ n.updated;
+    stat.classList.add("saved");
+  } else {
+    stat.textContent = "— 아직 입력되지 않음";
+    stat.classList.remove("saved");
+  }
+}
+
+function updateSfButtons(){
+  document.querySelectorAll("#drawer .sf-open").forEach(btn=>{
+    const k = btn.dataset.sfTarget;
+    const input = document.querySelector(`#drawer [data-sf-key="${k}"]`);
+    const v = (input && input.value || "").trim();
+    btn.disabled = !(v && /^https?:\/\//i.test(v));
+  });
+}
+
+function persistNoteField(key, value){
+  const k = noteKey();
+  if(!k) return;
+  const prev = (NOTES[k] && NOTES[k][key]) || "";
+  NOTES[k] = NOTES[k] || {};
+  NOTES[k][key] = value;
+  NOTES[k].updated = new Date().toISOString().replace("T"," ").slice(0,16);
+  saveNotes();
+  const stat = document.getElementById("m-note-status");
+  if(stat){
+    stat.textContent = "✓ 저장됨 · " + NOTES[k].updated;
+    stat.classList.add("saved");
+  }
+  // Auto-log significant field changes
+  if(value && value !== prev){
+    const labels = {
+      owner:"딥파인 담당자", contact_name:"고객사 담당자", contact_role:"직책/부서",
+      contact_email:"이메일", contact_phone:"연락처", last_contact:"마지막 컨택일",
+      status:"현재 상황", next_action:"Next Action",
+      lead_url:"SF Lead URL", opp_url:"SF Opportunity URL", account_url:"SF Account URL", custom_url:"SF Custom URL"
+    };
+    if(labels[key]){
+      const v = value.length>40 ? value.slice(0,40)+"…" : value;
+      addLog(`[${labels[key]}] 업데이트: ${v}`, true);
+    }
+  }
+  // refresh the green dot indicator on the dept card in modal
+  if(window._currentModal) renderDepts();
+}
+
+function noteSummary(pid, di){
+  const n = NOTES[pid+"::"+di];
+  if(!n) return null;
+  // Check if any meaningful field is filled
+  const fields = ["owner","contact_name","contact_role","contact_email","contact_phone","status","next_action","lead_url","opp_url","account_url","custom_url"];
+  const hasContent = fields.some(f=> (n[f]||"").trim());
+  return hasContent ? n : null;
+}
+
+// Delegated event handler for the drawer body (bound once at script load)
+(function bindDrawerEvents(){
+  const body = document.querySelector(".drawer-body");
+  if(!body) return;
+  body.addEventListener("change", e=>{
+    const t = e.target;
+    if(t.matches("[data-note-key]")) persistNoteField(t.dataset.noteKey, t.value);
+    else if(t.matches("[data-sf-key]")){ persistNoteField(t.dataset.sfKey, t.value); updateSfButtons(); }
+  });
+  body.addEventListener("input", e=>{
+    if(e.target.matches("[data-sf-key]")) updateSfButtons();
+  });
+  body.addEventListener("click", e=>{
+    const btn = e.target.closest(".sf-open");
+    if(!btn || btn.disabled) return;
+    const input = document.querySelector(`#drawer [data-sf-key="${btn.dataset.sfTarget}"]`);
+    const v = (input && input.value || "").trim();
+    if(v && /^https?:\/\//i.test(v)) window.open(v, "_blank", "noopener");
+  });
+  // Activity log handlers
+  const logInput = document.getElementById("log-input");
+  const logBtn = document.getElementById("log-add");
+  const submitLog = ()=>{
+    const v = (logInput.value||"").trim();
+    if(!v) return;
+    addLog(v, false);
+    logInput.value = "";
+  };
+  if(logInput){
+    logInput.addEventListener("keydown", e=>{
+      if(e.key==="Enter"){ e.preventDefault(); submitLog(); }
+    });
+  }
+  if(logBtn) logBtn.addEventListener("click", submitLog);
+})();
+
+function openDeptDrawer(di){
+  const ctx = window._currentModal;
+  if(!ctx) return;
+  const c = DATA[ctx.si].companies[ctx.ci];
+  const d = c.depts && c.depts[di];
+  if(!d) return;
+  window._currentDept = {si:ctx.si, ci:ctx.ci, di};
+  document.getElementById("dr-company").textContent = DATA[ctx.si].title + " · " + c.name;
+  document.getElementById("dr-dept").textContent = d.name;
+  document.getElementById("dr-desc").textContent = d.desc || "—";
+  loadNotesIntoForm();
+  renderLogs();
+  document.getElementById("drawer").classList.add("active");
+}
+function closeDrawer(){
+  document.getElementById("drawer").classList.remove("active");
+  window._currentDept = null;
+}
+
+function renderDepts(){
+  const ctx = window._currentModal;
+  if(!ctx) return;
+  const c = DATA[ctx.si].companies[ctx.ci];
+  const pid = ctx.si + "-" + ctx.ci;
+  const dwrap = document.getElementById("m-depts");
+  let html = "";
+  if(c.depts && c.depts.length>0){
+    html = c.depts.map((d,di)=>{
+      const note = noteSummary(pid, di);
+      const hasNotes = !!note;
+      const noteLabel = hasNotes
+        ? `노트 저장됨 · ${note.updated||""}`
+        : "노트 없음";
+      return `
+      <div class="dept ${hasNotes?"has-notes":""}" data-di="${di}" onclick="openDeptDrawer(${di})">
+        <button class="dept-remove" title="삭제" onclick="event.stopPropagation();removeDept(${di})">✕</button>
+        <div class="dept-name">${d.name}</div>
+        <div class="dept-desc">${d.desc||"—"}</div>
+        <div class="dept-cta">
+          <span class="dept-cta-note">${noteLabel}</span>
+          <span class="dept-cta-arrow">열기 →</span>
+        </div>
+      </div>`;
+    }).join("");
+  } else {
+    html = `<div class="empty-note" style="grid-column:1/-1;">등록된 부서/센터가 없습니다. 아래 버튼으로 추가하세요.</div>`;
+  }
+  html += `<button class="dept-add" onclick="addDept()">＋ 부서/센터 추가</button>`;
+  dwrap.innerHTML = html;
+}
+
+function addDept(){
+  const ctx = window._currentModal;
+  if(!ctx) return;
+  const name = prompt("부서·센터명 (예: 디지털혁신실)");
+  if(!name) return;
+  const desc = prompt("간단 설명 (영업 포인트)") || "";
+  const sf  = prompt("Salesforce 영업기회/잠재고객 URL\n(비우면 자동 더미 생성)", "");
+  const c = DATA[ctx.si].companies[ctx.ci];
+  c.depts = c.depts || [];
+  const slug = (c.name+"_"+name).replace(/[^A-Za-z0-9_]/g,"_").toUpperCase();
+  c.depts.push({
+    name, desc,
+    sf: sf || ("https://deepfine.lightning.force.com/lightning/r/Opportunity/DUMMY_"+slug+"/view")
+  });
+  renderDepts();
+}
+
+function removeDept(di){
+  const ctx = window._currentModal;
+  if(!ctx) return;
+  const c = DATA[ctx.si].companies[ctx.ci];
+  if(!c.depts || !c.depts[di]) return;
+  if(!confirm(`"${c.depts[di].name}" 부서를 삭제하시겠습니까?`)) return;
+  c.depts.splice(di,1);
+  renderDepts();
+}
+
+function closeModal(){
+  document.getElementById("modal").classList.remove("active");
+  document.body.style.overflow="";
+  window._currentModal = null;
+  closeDrawer();
+}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    if(document.getElementById("drawer").classList.contains("active")) closeDrawer();
+    else closeModal();
+  }
+});
+
+function onSFClick(e, el){
+  const url = el.getAttribute("data-sf");
+  if(url && url.includes("DUMMY_")){
+    e.preventDefault();
+    const t = document.getElementById("toast");
+    t.classList.add("show");
+    clearTimeout(window._tt);
+    window._tt = setTimeout(()=>t.classList.remove("show"),2200);
+    return false;
+  }
+}
+
+function addSlot(si){
+  const name = prompt("추가할 2티어 업체명:");
+  if(!name) return;
+  const desc = prompt("간단 설명:")||"";
+  DATA[si].companies.push({
+    name, tier:2, desc,
+    depts:[{name:"운영팀", desc:"기본 컨택 부서", sf:"https://deepfine.lightning.force.com/lightning/r/Lead/NEW/view"}]
+  });
+  renderGrid(document.getElementById("search").value.trim().toLowerCase());
+}
+
+/* Search */
+document.getElementById("search").addEventListener("input", e=>{
+  renderGrid(e.target.value.trim().toLowerCase());
+});
+
+/* ============== PIPELINE / FUNNEL DASHBOARD ============== */
+const DEFAULT_STAGES = [
+  {key:"lead",       label:"Lead",            desc:"초기 식별·컨택 전"},
+  {key:"sql",        label:"SQL",             desc:"영업 적격 리드 (MQL 포함)"},
+  {key:"converted",  label:"Opp Converted",   desc:"영업기회 전환 (→ Salesforce)"}
+];
+const STORE_KEY = "deepfine_pipeline_v3";
+const STAGES_KEY = "deepfine_stages_v3";
+
+function loadStages(){
+  // v4: force 3-stage structure (Lead / SQL / Converted) — ignore legacy 5-stage cache
+  return JSON.parse(JSON.stringify(DEFAULT_STAGES));
+}
+function saveStages(){
+  try{ localStorage.setItem(STAGES_KEY, JSON.stringify(STAGES)); }catch(e){}
+}
+let STAGES = loadStages();
+
+function buildAllProspects(){
+  // flatten: companyId = `${si}-${ci}`
+  const list = [];
+  DATA.forEach((sec,si)=>{
+    sec.companies.forEach((c,ci)=>{
+      list.push({
+        id: si+"-"+ci,
+        name: c.name, tier: c.tier, sector: sec.title,
+        si, ci
+      });
+    });
+  });
+  return list;
+}
+const PROSPECTS = buildAllProspects();
+
+function loadPipeline(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      // migrate legacy stages: mql/engaged/opp/won → simplified 3-stage
+      Object.keys(parsed).forEach(k=>{
+        const v = parsed[k];
+        if(v==="mql"||v==="engaged") parsed[k]="sql";
+        else if(v==="opp"||v==="won") parsed[k]="converted";
+      });
+      return parsed;
+    }
+  }catch(e){}
+  // default seed distribution: 65% lead, 28% sql, 7% converted
+  const seeded = {};
+  PROSPECTS.forEach((p, idx)=>{
+    const r = (idx * 37) % 100;
+    if(r<65) seeded[p.id]="lead";
+    else if(r<93) seeded[p.id]="sql";
+    else seeded[p.id]="converted";
+  });
+  return seeded;
+}
+
+/* ===== Contact notes (담당자 / 현재상황) ===== */
+const NOTES_KEY = "deepfine_notes_v3";
+function loadNotes(){
+  try{ return JSON.parse(localStorage.getItem(NOTES_KEY))||{}; }catch(e){ return {}; }
+}
+function saveNotes(){
+  try{ localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); }catch(e){}
+}
+let NOTES = loadNotes();
+
+/* ===== Activity Log per dept ===== */
+const LOGS_KEY = "deepfine_logs_v1";
+function loadLogs(){
+  try{ return JSON.parse(localStorage.getItem(LOGS_KEY))||{}; }catch(e){ return {}; }
+}
+function saveLogs(){
+  try{ localStorage.setItem(LOGS_KEY, JSON.stringify(LOGS)); }catch(e){}
+}
+let LOGS = loadLogs();
+function logKey(){
+  const ctx = window._currentDept;
+  return ctx ? (ctx.si+"-"+ctx.ci+"::"+ctx.di) : null;
+}
+function addLog(text, auto){
+  const k = logKey();
+  if(!k || !text) return;
+  LOGS[k] = LOGS[k] || [];
+  LOGS[k].unshift({
+    text: text.trim(),
+    auto: !!auto,
+    ts: new Date().toISOString()
+  });
+  // Cap at 50 entries per dept
+  if(LOGS[k].length>50) LOGS[k] = LOGS[k].slice(0,50);
+  saveLogs();
+  renderLogs();
+}
+function deleteLog(idx){
+  const k = logKey();
+  if(!k || !LOGS[k]) return;
+  LOGS[k].splice(idx,1);
+  saveLogs();
+  renderLogs();
+}
+function renderLogs(){
+  const ul = document.getElementById("log-list");
+  if(!ul) return;
+  const k = logKey();
+  const items = (k && LOGS[k]) || [];
+  if(items.length===0){
+    ul.innerHTML = `<li class="log-empty">— 기록된 활동이 없습니다 —</li>`;
+    return;
+  }
+  ul.innerHTML = items.map((l,i)=>{
+    const t = new Date(l.ts);
+    const ts = `${(t.getMonth()+1).toString().padStart(2,"0")}/${t.getDate().toString().padStart(2,"0")} ${t.getHours().toString().padStart(2,"0")}:${t.getMinutes().toString().padStart(2,"0")}`;
+    return `<li class="log-item ${l.auto?"auto":""}">
+      <span class="log-time">${ts}</span>
+      <span class="log-text">${escapeHtml(l.text)}</span>
+      <button class="log-del" onclick="deleteLog(${i})" title="삭제">✕</button>
+    </li>`;
+  }).join("");
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ===== Dark Mode ===== */
+const THEME_KEY = "deepfine_theme";
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  try{ localStorage.setItem(THEME_KEY, t); }catch(e){}
+  const ico = document.getElementById("theme-icon");
+  if(ico) ico.textContent = t==="dark" ? "☀" : "☽";
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute("data-theme")||"light";
+  applyTheme(cur==="dark" ? "light" : "dark");
+}
+// Init theme early
+(function initTheme(){
+  let t=null;
+  try{ t = localStorage.getItem(THEME_KEY); }catch(e){}
+  if(!t) t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+  applyTheme(t);
+})();
+// Structure: NOTES[companyId] = { owner:"", contact_name:"", contact_role:"", contact_email:"", contact_phone:"", status:"", next_action:"", updated:"" }
+function savePipeline(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(PIPELINE)); }catch(e){}
+}
+let PIPELINE = loadPipeline();
+
+function renderFunnel(){
+  const fn = document.getElementById("funnel");
+  fn.innerHTML = "";
+  fn.style.gridTemplateColumns = `repeat(${STAGES.length}, 1fr)`;
+  const total = PROSPECTS.length;
+  const counts = {};
+  STAGES.forEach(s=>counts[s.key]=0);
+  PROSPECTS.forEach(p=>{
+    const st = PIPELINE[p.id]||STAGES[0].key;
+    counts[st] = (counts[st]||0)+1;
+  });
+  STAGES.forEach((s,i)=>{
+    const c = counts[s.key]||0;
+    const pct = total>0 ? (c/total*100) : 0;
+    const isFinal = (i===STAGES.length-1);
+    const cell = document.createElement("div");
+    cell.className="fn-cell" + (isFinal?" fn-final":"");
+    cell.innerHTML = `
+      <div class="fn-stage">
+        <span class="fn-num">${String(i+1).padStart(2,"0")}</span>
+        <span class="fn-stage-label">${s.label}</span>
+        ${isFinal?'<span class="fn-handoff">SF 이관</span>':''}
+      </div>
+      <div class="fn-name">${s.desc||""}</div>
+      <div class="fn-count"><span class="v">${c}</span><span class="t">/ ${total}</span></div>
+      <div class="fn-pct">${pct.toFixed(1)}%</div>
+      <div class="fn-bar" style="width:${pct}%;"></div>
+    `;
+    fn.appendChild(cell);
+  });
+}
+
+function renderKanban(){
+  const kb = document.getElementById("kanban");
+  kb.innerHTML = "";
+  kb.style.gridTemplateColumns = `repeat(${STAGES.length}, 1fr)`;
+  STAGES.forEach((s,si)=>{
+    const items = PROSPECTS.filter(p=>(PIPELINE[p.id]||STAGES[0].key)===s.key);
+    const isFinal = (si===STAGES.length-1);
+    const col = document.createElement("div");
+    col.className="kcol" + (isFinal?" kcol-final":"");
+    col.dataset.stage = s.key;
+    col.innerHTML = `
+      <div class="kcol-head">
+        <span class="kcol-title">${s.label}${isFinal?' <span class="sf-mark">SF</span>':''}</span>
+        <span class="kcol-cnt">${items.length}</span>
+      </div>
+      <div class="kcol-body"></div>
+    `;
+    const body = col.querySelector(".kcol-body");
+    if(items.length===0){
+      body.innerHTML = `<div class="kcol-empty">— 비어 있음 —</div>`;
+    } else {
+      items.forEach(p=>{
+        const card = document.createElement("div");
+        card.className="kcard";
+        card.draggable=true;
+        card.dataset.pid = p.id;
+        const tierCls = p.tier===1?"t1":"t2";
+        const tierLbl = p.tier===1?"T1":"T2";
+        card.innerHTML = `
+          <div class="kcard-name"><span class="mini-tier ${tierCls}">${tierLbl}</span>${p.name}</div>
+          <div class="kcard-meta">${p.sector}</div>
+        `;
+        card.addEventListener("dragstart", onDragStart);
+        card.addEventListener("dragend", onDragEnd);
+        card.addEventListener("click", ()=>{
+          const cur = PIPELINE[p.id]||STAGES[0].key;
+          const opts = STAGES.map((st,i)=>`${i+1}. ${st.label}${st.key===cur?" ← 현재":""}`).join("\n");
+          const choice = prompt(`[${p.name}] 단계 변경\n\n${opts}\n\n번호 입력 (1-${STAGES.length}):`, String(STAGES.findIndex(x=>x.key===cur)+1));
+          if(!choice) return;
+          const idx = parseInt(choice,10)-1;
+          if(idx>=0 && idx<STAGES.length){
+            PIPELINE[p.id] = STAGES[idx].key;
+            savePipeline();
+            renderFunnel();
+            renderKanban();
+          }
+        });
+        body.appendChild(card);
+      });
+    }
+    col.addEventListener("dragover", e=>{e.preventDefault(); col.classList.add("drop-target");});
+    col.addEventListener("dragleave", ()=>col.classList.remove("drop-target"));
+    col.addEventListener("drop", e=>{
+      e.preventDefault();
+      col.classList.remove("drop-target");
+      const pid = e.dataTransfer.getData("text/plain");
+      if(pid){
+        PIPELINE[pid] = s.key;
+        savePipeline();
+        renderFunnel();
+        renderKanban();
+      }
+    });
+    kb.appendChild(col);
+  });
+}
+
+function onDragStart(e){
+  e.target.classList.add("dragging");
+  e.dataTransfer.setData("text/plain", e.target.dataset.pid);
+  e.dataTransfer.effectAllowed = "move";
+}
+function onDragEnd(e){
+  e.target.classList.remove("dragging");
+  document.querySelectorAll(".kcol.drop-target").forEach(c=>c.classList.remove("drop-target"));
+}
+
+document.getElementById("pipe-reset").addEventListener("click", ()=>{
+  if(confirm("파이프라인을 초기화하시겠습니까? 모든 업체가 첫 단계로 돌아갑니다.")){
+    PIPELINE = {};
+    PROSPECTS.forEach(p=>{PIPELINE[p.id]=STAGES[0].key;});
+    savePipeline();
+    renderFunnel();
+    renderKanban();
+  }
+});
+document.getElementById("pipe-export").addEventListener("click", ()=>{
+  const header = "Sector,Company,Tier,Stage\n";
+  const rows = PROSPECTS.map(p=>{
+    const stage = (PIPELINE[p.id]||STAGES[0].key);
+    const st = STAGES.find(s=>s.key===stage);
+    const lbl = st ? st.label : stage;
+    return `"${p.sector}","${p.name}",T${p.tier},"${lbl}"`;
+  }).join("\n");
+  const csv = "\uFEFF" + header + rows;
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "deepfine_pipeline_"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+document.getElementById("pipe-edit").addEventListener("click", openStageEditor);
+document.getElementById("pipe-restore").addEventListener("click", ()=>{
+  if(confirm("단계 구성을 기본값으로 되돌릴까요?\n(Lead → MQL → SQL → Engaged → Opp Converted)\n\n현재 각 업체의 단계 지정은 유지되지만, 매핑이 안 되는 항목은 첫 단계로 이동합니다.")){
+    STAGES = JSON.parse(JSON.stringify(DEFAULT_STAGES));
+    saveStages();
+    const validKeys = new Set(STAGES.map(s=>s.key));
+    Object.keys(PIPELINE).forEach(pid=>{
+      if(!validKeys.has(PIPELINE[pid])) PIPELINE[pid] = STAGES[0].key;
+    });
+    savePipeline();
+    renderFunnel();
+    renderKanban();
+  }
+});
+
+/* ====== Stage Editor Modal ====== */
+function openStageEditor(){
+  const overlay = document.getElementById("stage-editor");
+  const list = document.getElementById("se-list");
+  list.innerHTML = "";
+  STAGES.forEach((s, i)=>{
+    const row = buildStageRow(s.label, s.desc||"", i, i===STAGES.length-1);
+    list.appendChild(row);
+  });
+  attachListSortable(list);
+  overlay.classList.add("active");
+  document.body.style.overflow="hidden";
+}
+function closeStageEditor(){
+  document.getElementById("stage-editor").classList.remove("active");
+  document.body.style.overflow="";
+}
+function buildStageRow(label, desc, oldIdx, isFinal){
+  const row = document.createElement("div");
+  row.className = "se-row";
+  row.draggable = true;
+  if(oldIdx!==undefined && oldIdx!==null) row.dataset.oldIdx = oldIdx;
+  if(isFinal) row.dataset.final = "1";
+  const safeLabel = (label||"").replace(/"/g,'&quot;');
+  const safeDesc = (desc||"").replace(/"/g,'&quot;');
+  row.innerHTML = `
+    <span class="se-handle" title="드래그하여 순서 변경">☰</span>
+    <span class="se-num"></span>
+    <input class="se-label" type="text" value="${safeLabel}" placeholder="단계명" />
+    <input class="se-desc" type="text" value="${safeDesc}" placeholder="설명 (선택)" />
+    ${isFinal
+      ? '<span class="se-final-tag" title="마지막 단계는 Salesforce로 이관되는 종료 단계입니다">→ Salesforce</span>'
+      : '<button class="se-del" type="button" title="삭제">✕</button>'}
+  `;
+  return row;
+}
+function renumberStageRows(){
+  const list = document.getElementById("se-list");
+  Array.from(list.children).forEach((row, i)=>{
+    row.querySelector(".se-num").textContent = String(i+1).padStart(2,"0");
+    const isLast = (i===list.children.length-1);
+    const hasTag = row.querySelector(".se-final-tag");
+    const hasDel = row.querySelector(".se-del");
+    if(isLast && !hasTag && hasDel){
+      const tag = document.createElement("span");
+      tag.className="se-final-tag";
+      tag.title="마지막 단계는 Salesforce로 이관되는 종료 단계입니다";
+      tag.textContent="→ Salesforce";
+      hasDel.replaceWith(tag);
+      row.dataset.final="1";
+    } else if(!isLast && hasTag){
+      const btn = document.createElement("button");
+      btn.className="se-del"; btn.type="button"; btn.title="삭제"; btn.textContent="✕";
+      btn.addEventListener("click", onDelStageRow);
+      hasTag.replaceWith(btn);
+      delete row.dataset.final;
+    }
+  });
+}
+function onDelStageRow(e){
+  const list = document.getElementById("se-list");
+  if(list.children.length<=2){ alert("최소 2개 단계는 유지되어야 합니다."); return; }
+  e.target.closest(".se-row").remove();
+  renumberStageRows();
+}
+function attachListSortable(list){
+  Array.from(list.children).forEach(row=>{
+    row.addEventListener("dragstart", e=>{
+      row.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", "row");
+      e.dataTransfer.effectAllowed="move";
+    });
+    row.addEventListener("dragend", ()=>{ row.classList.remove("dragging"); renumberStageRows(); });
+    const delBtn = row.querySelector(".se-del");
+    if(delBtn) delBtn.addEventListener("click", onDelStageRow);
+  });
+  list.addEventListener("dragover", e=>{
+    e.preventDefault();
+    const dragging = list.querySelector(".dragging");
+    if(!dragging) return;
+    const rows = Array.from(list.querySelectorAll(".se-row:not(.dragging)"));
+    let inserted = false;
+    for(const r of rows){
+      const rect = r.getBoundingClientRect();
+      if(e.clientY < rect.top + rect.height/2){
+        list.insertBefore(dragging, r);
+        inserted = true;
+        break;
+      }
+    }
+    if(!inserted) list.appendChild(dragging);
+  });
+  renumberStageRows();
+}
+document.getElementById("se-close").addEventListener("click", closeStageEditor);
+document.getElementById("se-cancel").addEventListener("click", closeStageEditor);
+document.getElementById("se-add").addEventListener("click", ()=>{
+  const list = document.getElementById("se-list");
+  const newRow = buildStageRow("", "", null, false);
+  const finalRow = list.lastElementChild;
+  if(finalRow) list.insertBefore(newRow, finalRow);
+  else list.appendChild(newRow);
+  newRow.addEventListener("dragstart", e=>{newRow.classList.add("dragging");e.dataTransfer.setData("text/plain","row");});
+  newRow.addEventListener("dragend", ()=>{newRow.classList.remove("dragging");renumberStageRows();});
+  const delBtn = newRow.querySelector(".se-del");
+  if(delBtn) delBtn.addEventListener("click", onDelStageRow);
+  renumberStageRows();
+  newRow.querySelector(".se-label").focus();
+});
+document.getElementById("se-save").addEventListener("click", ()=>{
+  const list = document.getElementById("se-list");
+  const rows = Array.from(list.children);
+  const newStages = [];
+  for(const row of rows){
+    const label = row.querySelector(".se-label").value.trim();
+    const desc  = row.querySelector(".se-desc").value.trim();
+    if(!label) continue;
+    let key;
+    const oldIdxAttr = row.dataset.oldIdx;
+    if(oldIdxAttr!==undefined && STAGES[parseInt(oldIdxAttr,10)]){
+      key = STAGES[parseInt(oldIdxAttr,10)].key;
+    } else {
+      let baseKey = label.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"");
+      if(!baseKey) baseKey = "stage_"+newStages.length;
+      key = baseKey;
+    }
+    let finalKey = key, n=2;
+    while(newStages.some(s=>s.key===finalKey)){ finalKey = key+"_"+n; n++; }
+    newStages.push({key:finalKey, label, desc});
+  }
+  if(newStages.length<2){ alert("최소 2개 단계가 필요합니다."); return; }
+  const validKeys = new Set(newStages.map(s=>s.key));
+  Object.keys(PIPELINE).forEach(pid=>{
+    if(!validKeys.has(PIPELINE[pid])) PIPELINE[pid] = newStages[0].key;
+  });
+  STAGES = newStages;
+  saveStages();
+  savePipeline();
+  closeStageEditor();
+  renderFunnel();
+  renderKanban();
+});
+
+/* ===== Global toolbar: theme, CSV/JSON export & import ===== */
+function allCompanyMap(){
+  // Returns {pid: {sector, name, tier, stage}}
+  const m = {};
+  DATA.forEach((sec,si)=>{
+    sec.companies.forEach((c,ci)=>{
+      m[si+"-"+ci] = {sector:sec.title, name:c.name, tier:c.tier};
+    });
+  });
+  return m;
+}
+
+function csvEscape(s){
+  s = (s===null||s===undefined) ? "" : String(s);
+  if(/[",\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+
+function exportNotesCSV(){
+  const cmap = allCompanyMap();
+  const header = [
+    "Sector","Company","Tier","Stage","Dept",
+    "Owner","Contact_Name","Contact_Role","Email","Phone","Last_Contact",
+    "Status","Next_Action",
+    "SF_Lead","SF_Opportunity","SF_Account","SF_Custom","Updated"
+  ];
+  const rows = [header.join(",")];
+  DATA.forEach((sec,si)=>{
+    sec.companies.forEach((c,ci)=>{
+      const pid = si+"-"+ci;
+      const stage = PIPELINE[pid] || STAGES[0].key;
+      const stageLabel = (STAGES.find(s=>s.key===stage)||{}).label || stage;
+      const depts = c.depts || [];
+      if(depts.length===0){
+        // still emit one row with empty dept
+        rows.push([sec.title, c.name, "T"+c.tier, stageLabel, "", "","","","","","","","","","","","",""].map(csvEscape).join(","));
+        return;
+      }
+      depts.forEach((d,di)=>{
+        const n = NOTES[pid+"::"+di] || {};
+        rows.push([
+          sec.title, c.name, "T"+c.tier, stageLabel, d.name||"",
+          n.owner||"", n.contact_name||"", n.contact_role||"", n.contact_email||"", n.contact_phone||"", n.last_contact||"",
+          n.status||"", n.next_action||"",
+          n.lead_url||"", n.opp_url||"", n.account_url||"", n.custom_url||"", n.updated||""
+        ].map(csvEscape).join(","));
+      });
+    });
+  });
+  const csv = "\uFEFF" + rows.join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  triggerDownload(blob, "deepfine_sales_notes_"+todayStamp()+".csv");
+  showToast("✓ 영업 노트 CSV 내보내기 완료");
+}
+
+function exportJSONBackup(){
+  const payload = {
+    _meta: {app:"DEEP.FINE Sales Targeting", version:"v7", exported:new Date().toISOString()},
+    pipeline: PIPELINE,
+    stages: STAGES,
+    notes: NOTES,
+    logs: LOGS,
+    custom_companies: collectCustomCompanies()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json;charset=utf-8;"});
+  triggerDownload(blob, "deepfine_backup_"+todayStamp()+".json");
+  showToast("✓ 전체 백업 JSON 다운로드");
+}
+
+function collectCustomCompanies(){
+  // Capture user-added depts beyond the original baseline (best-effort full snapshot)
+  return DATA.map(sec=>({
+    title: sec.title,
+    companies: sec.companies.map(c=>({
+      name:c.name, tier:c.tier, desc:c.desc, excelKey:c.excelKey,
+      depts: (c.depts||[]).map(d=>({name:d.name, desc:d.desc, sf:d.sf}))
+    }))
+  }));
+}
+
+function importJSONBackup(file){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const obj = JSON.parse(e.target.result);
+      if(!obj || typeof obj!=="object") throw new Error("invalid format");
+      if(!confirm("현재 데이터를 백업으로 덮어씁니다.\n\n계속하시겠습니까?")) return;
+      if(obj.pipeline){ PIPELINE = obj.pipeline; savePipeline(); }
+      if(obj.stages && Array.isArray(obj.stages) && obj.stages.length>=2){ STAGES = obj.stages; saveStages(); }
+      if(obj.notes){ NOTES = obj.notes; saveNotes(); }
+      if(obj.logs){ LOGS = obj.logs; saveLogs(); }
+      if(obj.custom_companies && Array.isArray(obj.custom_companies)){
+        // Merge dept lists for matching sector/company
+        obj.custom_companies.forEach((sec,si)=>{
+          if(!DATA[si] || DATA[si].title!==sec.title) return;
+          sec.companies.forEach((cc,ci)=>{
+            if(!DATA[si].companies[ci]) return;
+            if(DATA[si].companies[ci].name === cc.name && cc.depts){
+              DATA[si].companies[ci].depts = cc.depts;
+            }
+          });
+        });
+      }
+      renderGrid(document.getElementById("search").value.trim().toLowerCase());
+      renderFunnel();
+      renderKanban();
+      showToast("✓ 복원 완료");
+    }catch(err){
+      alert("JSON 백업 파일이 올바르지 않습니다.\n" + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function triggerDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function todayStamp(){
+  const d = new Date();
+  return d.toISOString().slice(0,10).replace(/-/g,"");
+}
+function showToast(msg){
+  const t = document.getElementById("toast");
+  if(!t) return;
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(window._tt);
+  window._tt = setTimeout(()=>t.classList.remove("show"), 2400);
+}
+
+// Wire up global toolbar
+document.getElementById("btn-theme").addEventListener("click", toggleTheme);
+document.getElementById("btn-export-notes").addEventListener("click", exportNotesCSV);
+document.getElementById("btn-export-json").addEventListener("click", exportJSONBackup);
+document.getElementById("btn-import-json").addEventListener("click", ()=>{
+  document.getElementById("file-import").click();
+});
+document.getElementById("file-import").addEventListener("change", e=>{
+  const f = e.target.files && e.target.files[0];
+  if(f) importJSONBackup(f);
+  e.target.value = "";
+});
+
+// Keyboard shortcuts: "/" focus search, "T" toggle theme
+document.addEventListener("keydown", e=>{
+  const target = e.target;
+  const inForm = target && (target.tagName==="INPUT"||target.tagName==="TEXTAREA"||target.isContentEditable);
+  if(inForm) return;
+  if(e.key==="/"){
+    e.preventDefault();
+    document.getElementById("search").focus();
+  } else if(e.key==="t" || e.key==="T"){
+    toggleTheme();
+  }
+});
+
+/* Init */
+renderGrid("");
+renderParks();
+renderFunnel();
+renderKanban();
+// stat: registered centers
+let totalCenters = 0;
+Object.values(EXCEL.centers).forEach(arr=>{totalCenters += arr.length;});
+document.getElementById("stat-centers").textContent = totalCenters;
+document.getElementById("stat-parks").textContent = (EXCEL.parks||[]).filter(p=>p.name && p.name!=="nan").length;
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
